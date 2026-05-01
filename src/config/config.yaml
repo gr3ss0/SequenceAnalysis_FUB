@@ -1,0 +1,8 @@
+
+ref: "resources/reference/reference.fa"
+samples: "resources/samples.tsv"
+
+
+bowtie2_params:
+  min_fragment_ln: "--minins 5"
+  threads: "--threads 4"
