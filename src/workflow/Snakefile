@@ -10,7 +10,7 @@ REF_BASENAME = "reference"
 # files at the end of analysis
 rule all:
 	input:
-		expand ("results/stats/{sample}_stats", sample = SAMPLES.index ),
+		expand ("results/stats/{sample}.stats", sample = SAMPLES.index ),
 		expand("results/filtered/{sample}_mapping.bam", sample=SAMPLES.index),
 		expand("results/groupwise/agg_group_{group}.tsv", group=GROUPS)
 
