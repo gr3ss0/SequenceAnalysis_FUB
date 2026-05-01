@@ -8,7 +8,7 @@ rule index_ref:
 		"logs/index_ref/"+REF_BASENAME+".log"
 	threads: 4
 	conda:
-		"envs/mapping.yaml"
+		"../envs/mapping.yaml"
 	shell:
 		"bowtie2-build --threads {threads} -f {input.ref} " + REF_BASENAME + " > {log} 2>&1" #<reference_in> <bt2_base>
 
@@ -24,6 +24,6 @@ rule map:
 		"logs/map/{sample}.log"
 	threads: 4
 	conda:
-		"envs/mapping.yaml"
+		"../envs/mapping.yaml"
 	shell:
 		"bowtie2 --threads {threads} -x " + REF_BASENAME + " -1 {input.r1} -2 {input.r2} -S {output} 2>{log}"
