@@ -1,0 +1,7 @@
+resources/
+results/
+*.zip
+*.swm
+*.fa
+*.gz
+
