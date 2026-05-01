@@ -1,9 +1,11 @@
 resources/
+!resources/.gitkeep
 results/
+!results/.gitkeep
 .snakemake/
 logs/
 *.zip
 *.swm
 *.fa
 *.gz
-
+shubh/
