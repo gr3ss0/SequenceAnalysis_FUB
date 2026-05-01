@@ -1,6 +1,7 @@
 resources/
 results/
 .snakemake/
+logs/
 *.zip
 *.swm
 *.fa
