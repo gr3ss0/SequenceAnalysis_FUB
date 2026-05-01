@@ -5,7 +5,7 @@ results/
 .snakemake/
 logs/
 *.zip
-*.swm
+*.swp
 *.fa
 *.gz
 shubh/
