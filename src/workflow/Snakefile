@@ -20,7 +20,7 @@ include: "rules/samtools.smk"
 rule grouped_stats:
 	input:
 		list_of_stats = lambda wildcards: expand(
-					"results/stats/{sample}_stats", 
+					"results/stats/{sample}.stats", 
 					sample=SAMPLES[SAMPLES['group'] == wildcards.group].index
 				)	
 	output:
