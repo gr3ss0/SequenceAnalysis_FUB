@@ -6,6 +6,8 @@ rule convert:
 	threads: 4
 	log:
 		"logs/convert/{sample}.log"
+	conda:
+		"../envs/mapping.yaml"
 	shell:
 		"samtools view -@ {threads} -bS {input} > {output} 2>{log}"
 
@@ -17,6 +19,8 @@ rule sort:
 	threads: 4
 	log:
 		"logs/sort/{sample}.log"
+	conda:
+		"../envs/mapping.yaml"
 	shell:
 		"samtools sort -@ {threads} -o {output} {input} 2>{log}"
 
@@ -28,6 +32,8 @@ rule index:
 	threads: 4
 	log:
 		"logs/index/{sample}.log"
+	conda:
+		"../envs/mapping.yaml"
 	shell:
 		"samtools index -@ {threads} {input} 2>{log}"
 
@@ -40,6 +46,8 @@ rule calculate_stats:
 	threads: 4
 	log:
 		"logs/stats/{sample}.log"
+	conda:
+		"../envs/mapping.yaml"
 	shell:
 		"samtools idxstats -@ {threads} {input.bam} > {output} 2>{log}"
 rule extract_mapping:
@@ -51,5 +59,7 @@ rule extract_mapping:
 	threads: 4
 	log:
 		"logs/filter/{sample}.log"
+	conda:
+		"../envs/mapping.yaml"
 	shell:
 		"samtools view -@ {threads} -b {input.bam} NZ_AMKI01000040.1 NZ_AMKI01000041.1 > {output} 2>{log}"
