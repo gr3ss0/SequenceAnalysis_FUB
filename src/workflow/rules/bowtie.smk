@@ -7,6 +7,7 @@ rule index_ref:
 	log:
 		"logs/index_ref/"+REF_BASENAME+".log"
 	threads: 4
+	
 	conda:
 		"../envs/mapping.yaml"
 	shell:
@@ -23,7 +24,10 @@ rule map:
 	log:
 		"logs/map/{sample}.log"
 	threads: 4
+	params:
+		min_frag=config["bowtie2_params"]["min_fragment_ln"],
+		seed=config["bowtie2_params"]["seed"]
 	conda:
 		"../envs/mapping.yaml"
 	shell:
-		"bowtie2 --threads {threads} -x " + REF_BASENAME + " -1 {input.r1} -2 {input.r2} -S {output} 2>{log}"
+		"bowtie2 --threads {threads} {params.min_frag} {params.seed} -x " + REF_BASENAME + " -1 {input.r1} -2 {input.r2} -S {output} 2>{log}"
