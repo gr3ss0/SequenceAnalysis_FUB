@@ -4,5 +4,5 @@ samples: "resources/samples.tsv"
 
 
 bowtie2_params:
-  min_fragment_ln: "--minins 5"
-  threads: "--threads 4"
+  min_fragment_ln: "--minins 0"
+  seed: "--seed 0"
