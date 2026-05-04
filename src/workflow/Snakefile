@@ -12,10 +12,23 @@ rule all:
 	input:
 		expand ("results/stats/{sample}.stats", sample = SAMPLES.index ),
 		expand("results/filtered/{sample}_mapping.bam", sample=SAMPLES.index),
-		expand("results/groupwise/agg_group_{group}.tsv", group=GROUPS)
+		expand("results/groupwise/agg_group_{group}.tsv", group=GROUPS),
+		"results/stats/merge.stats"
+
 
 include: "rules/bowtie.smk"
 include: "rules/samtools.smk"
+
+rule aggregate_stats:
+	input:
+		list_of_stats = lambda wildcards: expand(
+					"results/stats/{sample}.stats", sample=SAMPLES.index)
+	output:
+		"results/stats/merge.stats"
+	run:
+		for stat in input.list_of_stats:
+			df = pd.read_csv(stat, sep='\t', index_col=0)
+			df.iloc[:, 0:2].to_csv(output[0], sep='\t', mode='a')
 
 rule grouped_stats:
 	input:
