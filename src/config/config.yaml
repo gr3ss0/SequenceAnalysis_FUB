@@ -6,3 +6,4 @@ samples: "resources/samples.tsv"
 bowtie2_params:
   min_fragment_ln: "--minins 0"
   seed: "--seed 0"
+  ref_index_dir: "results/ref_index/"
