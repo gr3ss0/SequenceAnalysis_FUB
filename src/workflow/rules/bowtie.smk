@@ -33,4 +33,4 @@ rule map:
 	conda:
 		"../envs/mapping.yaml"
 	shell:
-		"bowtie2 --threads {threads} {params.min_frag} {params.seed} -x {params.index_basename} -1 {input.r1} -2 {input.r2} -S {output} 2>{log}"
+		"bowtie2 --threads {threads} --minins {params.min_frag} --seed {params.seed} -x {params.index_basename} -1 {input.r1} -2 {input.r2} -S {output} 2>{log}"
