@@ -56,7 +56,10 @@ rule trimmomatic:
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
 rule run_coocked_qc:
     input:
-        lambda wildcards: "results/trimmed/{sample}_1.fastq.gz" if wildcards.read == "fq1" else "results/trimmed/{sample}_2.fastq.gz"
+        lambda wildcards: (
+            [f"results/trimmed/{wildcards.sample}_1.fastq.gz"] if wildcards.read == "fq1" 
+            else [f"results/trimmed/{wildcards.sample}_2.fastq.gz"]
+        ) if not config["analysis_options"]["skip_trimming"]==True else []
     output:
         html="results/qc/fastqc/processed/{sample}_{read}.html",
         zip="results/qc/fastqc/processed/{sample}_{read}_fastqc.zip"
@@ -94,7 +97,7 @@ rule qualimap:
 
 rule multiqc_all:
     input:
-        expand("results/qc/qualimap/{sample}", sample=SAMPLES.index),
+        expand("results/qc/qualimap/{sample}", sample=SAMPLES.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
         expand("results/qc/fastqc/processed/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['fq1', 'fq2'])
     output:
         report_file="results/qc/multiqc_all.html",
