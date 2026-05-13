@@ -1,4 +1,4 @@
-
+configfile: "config/config.yaml"
 
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
 rule run_raw_qc_per_file:
@@ -20,7 +20,6 @@ rule run_raw_qc_per_file:
 
 
 
-# https://snakemake-wrappers.readthedocs.io/en/v3.3.1/wrappers/trimmomatic/se.html
 rule trimmomatic:
     input:
         r1 = lambda wildcards:SAMPLES.at[wildcards.sample,'fq1'],
@@ -32,22 +31,27 @@ rule trimmomatic:
         r2_unpaired = "results/trimmed/{sample}_2_unpaired.fastq.gz" #unpaired R2 fastq(gz) file (if PE)
     log:
         "logs/trimmomatic/{sample}.log"
-    params:
-        # list of trimmers (see manual)
-        trimmer=["TRAILING:3"],
-        # optional parameters
-        extra="",
-        # optional compression levels from -0 to -9 and -11
-        compression_level="-9"
+    conda:
+        "../envs/mapping.yaml"
     threads: 4
-    # optional specification of memory usage of the JVM that snakemake will respect with global
-    # resource restrictions (https://snakemake.readthedocs.io/en/latest/snakefiles/rules.html#resources)
-    # and which can be used to request RAM during cluster job submission as `{resources.mem_mb}`:
-    # https://snakemake.readthedocs.io/en/latest/executing/cluster.html#job-properties
-    resources:
-        mem_mb=1024
-    wrapper:
-        "v9.8.0/bio/trimmomatic"
+    params:
+        trim_mode=config["trimmomatic_params"]["mode"],
+        adapter=config["trimmomatic_params"]["adapter_file"],
+        seed_mismatch=config["trimmomatic_params"]["seed_mismatch"],
+        palindrome=config["trimmomatic_params"]["palindrome_treshold"],
+        simple=config["trimmomatic_params"]["simple_treshold"],
+        min_adapter=config["trimmomatic_params"]["min_adapter_length"],
+        keep_reads=config["trimmomatic_params"]["keep_both_reads"]
+
+    shell:
+        """
+        trimmomatic {params.trim_mode} \
+        -threads {threads} \
+        {input} {output} \
+        ILLUMINACLIP:{params.adapter}:{params.seed_mismatch}:{params.palindrome}:{params.simple}:{params.min_adapter}:{params.keep_reads} \
+        > {log} 2>&1
+        """
+
 
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
 rule run_coocked_qc:
@@ -68,24 +72,24 @@ rule run_coocked_qc:
         "v7.6.0/bio/fastqc"
 
 
-# https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/qualimap/bamqc.html
 rule qualimap:
     input:
-        # BAM aligned, splicing-aware, to reference genome
+        # fails if not sorted
         bam="results/bam_sorted/{sample}_sorted.bam",
         bai="results/bam_sorted/{sample}_sorted.bam.bai"
     output:
         directory("results/qc/qualimap/{sample}")
     log:
         "logs/qualimap/bamqc/{sample}.log",
-    # optional specification of memory usage of the JVM that snakemake will respect with global
-    # resource restrictions (https://snakemake.readthedocs.io/en/latest/snakefiles/rules.html#resources)
-    # and which can be used to request RAM during cluster job submission as `{resources.mem_mb}`:
-    # https://snakemake.readthedocs.io/en/latest/executing/cluster.html#job-properties
-    resources:
-        mem_mb=4096,
-    wrapper:
-        "v7.6.0/bio/qualimap/bamqc"
+    conda:
+        "../envs/mapping.yaml"
+    shell:
+        """
+        qualimap bamqc -nt {threads} \
+        -bam {input.bam} \
+        -outdir {output} \
+        > {log} 2>&1
+        """
 
 
 rule multiqc_all:
