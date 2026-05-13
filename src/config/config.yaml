@@ -2,6 +2,11 @@
 ref: "resources/reference/reference.fa"
 samples: "resources/samples.tsv"
 
+analysis_options:
+  skip_trimming: "False"
+  skip_fastQC: "False"
+  skip_qualimap: "False"
+
 
 bowtie2_params:
   min_fragment_ln: "0"
@@ -19,4 +24,5 @@ trimmomatic_params:
   min_adapter_length: "8" # default 8
   keep_both_reads: "False" #default false
   # there are other trimmers such as SLIDINGWINDOW which we don't implement
+
 
