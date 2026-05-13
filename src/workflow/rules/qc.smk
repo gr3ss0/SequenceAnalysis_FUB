@@ -86,6 +86,7 @@ rule qualimap:
         "logs/qualimap/bamqc/{sample}.log",
     conda:
         "../envs/mapping.yaml"
+    threads: 4
     shell:
         """
         qualimap bamqc -nt {threads} \
