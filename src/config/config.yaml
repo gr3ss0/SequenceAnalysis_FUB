@@ -7,3 +7,7 @@ bowtie2_params:
   min_fragment_ln: "0"
   seed: "0"
   ref_index_dir: "results/ref_index/"
+
+trimmomatic_params:
+  adapter_file: ""
+  trimming_options: ""
