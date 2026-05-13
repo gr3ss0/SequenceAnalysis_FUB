@@ -15,10 +15,27 @@ rule index_ref:
 	shell:
 		"bowtie2-build --threads {threads} -f {input.ref} {params.output_file} > {log} 2>&1" #<reference_in> <bt2_base>
 
+
+def get_map_input(wildcards):
+    # Case 1: Trimming was skipped, use raw data from SAMPLES dataframe
+    if config["analysis_options"].get("skip_trimming", False):
+        return {
+            "r1": SAMPLES.at[wildcards.sample, 'fq1'],
+            "r2": SAMPLES.at[wildcards.sample, 'fq2']
+        }
+    
+    # Case 2: Trimming was performed, use results from your trimming rule
+    # Note: Use the actual filenames produced by your Trimmomatic rule
+    else:
+        return {
+            "r1": f"results/trimmed/{wildcards.sample}_R1_paired.fq.gz",
+            "r2": f"results/trimmed/{wildcards.sample}_R2_paired.fq.gz"
+        }
+
+
 rule map:
 	input:
-		r1 = lambda wildcards:SAMPLES.at[wildcards.sample,'fq1'],
-		r2 = lambda wildcards:SAMPLES.at[wildcards.sample,'fq2'],
+		unpack(get_map_input),
 		index_files = multiext(config["bowtie2_params"]["ref_index_dir"]+REF_BASENAME, 
 		".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2")
 	output:
