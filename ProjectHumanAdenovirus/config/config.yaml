@@ -1,0 +1,28 @@
+
+ref: "resources/reference/reference.fa"
+samples: "resources/samples.tsv"
+
+analysis_options:
+  skip_trimming: "False"
+  skip_fastQC: "False"
+  skip_qualimap: "False"
+
+
+bowtie2_params:
+  min_fragment_ln: "0"
+  seed: "0"
+  ref_index_dir: "results/ref_index/"
+
+# http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf
+trimmomatic_params:
+  mode: "PE"
+  # ILLUMINACLIP options
+  adapter_file: "resources/adapters/TruSeq2-PE.fa"
+  seed_mismatch: "2"
+  palindrome_treshold: "30"
+  simple_treshold: "10"
+  min_adapter_length: "8" # default 8
+  keep_both_reads: "False" #default false
+  # there are other trimmers such as SLIDINGWINDOW which we don't implement
+
+

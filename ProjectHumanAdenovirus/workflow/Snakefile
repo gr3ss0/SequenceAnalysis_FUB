@@ -1,0 +1,49 @@
+import os
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+SAMPLES = pd.read_csv(config["samples"], index_col="sample", sep='\t')
+GROUPS = SAMPLES['group'].unique()
+
+REF_BASENAME = "reference"
+# files at the end of analysis
+
+rule all:
+	input:
+		# map
+		expand("results/filtered/{sample}_mapping.bam", sample=SAMPLES.index),
+		# produce all stats and provide groupped view
+		expand("results/groupwise/agg_group_{group}.tsv", group=GROUPS),
+		"results/stats/merged.tsv",
+		
+		
+		"results/qc/multiqc_all.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+		# TODO: should we execute FastQC on row data always or only prepare direct exection?
+		"results/qc/multiqc_raw.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+
+
+
+include: "rules/bowtie.smk"
+include: "rules/samtools.smk"
+include: "rules/qc.smk"
+
+rule aggregate_stats:
+	input:
+		list_of_stats = lambda wildcards: expand(
+					"results/stats/{sample}.stats", sample=SAMPLES.index)
+	output:
+		"results/stats/merged.tsv"
+	script:
+		"scripts/merge_stats.py"
+
+rule grouped_stats:
+	input:
+		list_of_stats = lambda wildcards: expand(
+					"results/stats/{sample}.stats", 
+					sample=SAMPLES[SAMPLES['group'] == wildcards.group].index
+				)	
+	output:
+		"results/groupwise/agg_group_{group}.tsv"
+	script:
+		"scripts/group_stats.py"
