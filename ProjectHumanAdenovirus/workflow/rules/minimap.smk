@@ -38,16 +38,16 @@ def get_map_input(wildcards):
     # Case 1: Trimming was skipped, use raw data from SAMPLES dataframe
     if config["analysis_options"].get("skip_trimming", False):
         return {
-            "r1": SAMPLES.at[wildcards.sample, 'fq1'],
-            "r2": SAMPLES.at[wildcards.sample, 'fq2']
+            "r1": f"results/trimmed/{wildcards.sample}.1.fastq",
+            "r2": f"results/trimmed/{wildcards.sample}.2.fastq"
         }
     
     # Case 2: Trimming was performed, use results from your trimming rule
     # Note: Use the actual filenames produced by your Trimmomatic rule
     else:
         return {
-            "r1": f"results/trimmed/{wildcards.sample}_R1_paired.fq.gz",
-            "r2": f"results/trimmed/{wildcards.sample}_R2_paired.fq.gz"
+            "r1": SAMPLES.at[wildcards.sample, 'fq1'],
+            "r2": SAMPLES.at[wildcards.sample, 'fq2']
         }
 
 
