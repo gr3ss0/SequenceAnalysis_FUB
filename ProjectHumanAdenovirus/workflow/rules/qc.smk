@@ -21,11 +21,14 @@ rule run_raw_qc_per_file:
 # https://snakemake-wrappers.readthedocs.io/en/v7.8.0/wrappers/bio/fastp.html
 rule fastp_pe:
     input:
-        sample=["reads/pe/{sample}.1.fastq", "reads/pe/{sample}.2.fastq"]
+        sample = lambda wildcards: [
+            SAMPLES.at[wildcards.sample, 'fq1'],
+            SAMPLES.at[wildcards.sample, 'fq2']
+        ]
     output:
         trimmed=["results/trimmed/{sample}.1.fastq", "results/trimmed/{sample}.2.fastq"],
         # Unpaired reads separately
-        unpaired1="results/trimmed/pe/{sample}.u1.fastq",
+        unpaired1="results/trimmed/{sample}.u1.fastq",
         unpaired2="results/trimmed/{sample}.u2.fastq",
         merged="results/trimmed/{sample}.merged.fastq",
         failed="results/trimmed/{sample}.failed.fastq",
@@ -34,7 +37,7 @@ rule fastp_pe:
     log:
         "logs/fastp/{sample}.log"
     params:
-        adapters="--adapter_sequence ACGGCTAGCTA --adapter_sequence_r2 AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC",
+        #adapters="--adapter_sequence ACGGCTAGCTA --adapter_sequence_r2 AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC",
         extra="--merge"
     threads: 4
     wrapper:
@@ -74,26 +77,26 @@ rule fastp_pe:
 #         """
 
 
-# # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
-# rule run_coocked_qc:
-#     input:
-#         lambda wildcards: (
-#             [f"results/trimmed/{wildcards.sample}_1.fastq.gz"] if wildcards.read == "fq1" 
-#             else [f"results/trimmed/{wildcards.sample}_2.fastq.gz"]
-#         ) if not config["analysis_options"]["skip_trimming"]==True else []
-#     output:
-#         html="results/qc/fastqc/processed/{sample}_{read}.html",
-#         zip="results/qc/fastqc/processed/{sample}_{read}_fastqc.zip"
-#     params:
-#         extra="--quiet",
-#         mem_overhead_factor=0.1,
-#     log:
-#         "logs/fastqc/processed/{sample}_{read}.log",
-#     threads: 1
-#     resources:
-#         mem_mb = 1024,
-#     wrapper:
-#         "v7.6.0/bio/fastqc"
+# https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
+rule run_coocked_qc:
+    input:
+        lambda wildcards: (
+            [f"results/trimmed/{wildcards.sample}.1.fastq"] if wildcards.read == "fq1" 
+            else [f"results/trimmed/{wildcards.sample}.2.fastq"]
+        ) if not config["analysis_options"]["skip_trimming"]==True else []
+    output:
+        html="results/qc/fastqc/processed/{sample}_{read}.html",
+        zip="results/qc/fastqc/processed/{sample}_{read}_fastqc.zip"
+    params:
+        extra="--quiet",
+        mem_overhead_factor=0.1,
+    log:
+        "logs/fastqc/processed/{sample}_{read}.log",
+    threads: 1
+    resources:
+        mem_mb = 1024,
+    wrapper:
+        "v7.6.0/bio/fastqc"
 
 
 rule qualimap:
