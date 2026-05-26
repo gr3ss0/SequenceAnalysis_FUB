@@ -1,11 +1,18 @@
 
-ref: "resources/reference/reference.fa"
+ref: "resources/reference/sequence.fa"
 samples: "resources/samples.tsv"
 
 analysis_options:
   skip_trimming: "False"
   skip_fastQC: "False"
   skip_qualimap: "False"
+
+ivar_params:
+  max_depth: "60000"
+  min_freq: "0.5"
+  min_qual: "20"
+  min_cov: "10"
+
 
 
 bowtie2_params:
