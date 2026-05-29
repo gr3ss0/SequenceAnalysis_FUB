@@ -40,18 +40,25 @@ rule index:
 		"samtools index -@ {threads} {input} 2>{log}"
 
 rule calculate_stats:
-	input:
-		bam = "results/bam_sorted/{sample}_sorted.bam",
-		bai = "results/bam_sorted/{sample}_sorted.bam.bai"
-	output:
-		"results/stats/{sample}.stats"
-	threads: 4
-	log:
-		"logs/stats/{sample}.log"
-	conda:
-		"../envs/mapping.yaml"
-	shell:
-		"samtools idxstats -@ {threads} {input.bam} > {output} 2>{log}"
+    input:
+        bam = "results/bam_sorted/{sample}_sorted.bam",
+        bai = "results/bam_sorted/{sample}_sorted.bam.bai"
+    output:
+        idxstats = "results/stats/{sample}.idxstats",
+        flagstat = "results/stats/{sample}.flagstat",
+        stats = "results/stats/{sample}.stats"
+    threads: 2
+    log:
+        "logs/stats/{sample}.log"
+    conda:
+        "../envs/mapping.yaml"
+    shell:
+        """
+        samtools idxstats {input.bam} > {output.idxstats} 2>{log}
+        samtools flagstat {input.bam} > {output.flagstat} 2>>{log}
+        samtools stats {input.bam} > {output.stats} 2>>{log}
+        """
+
 
 # rule extract_mapping:
 # 	input:
@@ -68,10 +75,3 @@ rule calculate_stats:
 # 		"samtools view -@ {threads} -b {input.bam} NZ_AMKI01000040.1 NZ_AMKI01000041.1 > {output} 2>{log}"
 
 
-rule samtools_pileup:
-	input:
-		bamlist = expand("results/mapped/{sample}_aln.sorted.bam", sample=SAMPLES.index),
-
-
-	
-	
