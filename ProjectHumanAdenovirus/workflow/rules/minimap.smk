@@ -57,11 +57,14 @@ rule minimap2:
         ref_index = rules.minimap2_index.output,  # REF, can be either genome index or genome fasta
         
     output:
-        "results/bam_sorted/{sample}_sorted.bam",
+        bam = "results/bam_sorted/{sample}_sorted.bam",
     log:
         "logs/minimap2/{sample}.log",
     threads: 4
     conda:
         "../envs/mapping.yaml"
     shell:
-        "minimap2 -t {threads} -ax sr {input.ref_index} {input.r1} {input.r2} | samtools sort -@ {threads} -o {output} - "
+        """
+        minimap2 -t {threads} -ax sr {input.ref_index} {input.r1} {input.r2} 2>{log} | \
+        samtools sort -@ {threads} -o {output.bam} - >>{log} 2>&1
+        """
