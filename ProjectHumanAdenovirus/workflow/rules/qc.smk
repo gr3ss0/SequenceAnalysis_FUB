@@ -44,39 +44,6 @@ rule fastp_pe:
         "v7.1.0/bio/fastp"
 
 
-# rule trimmomatic:
-#     input:
-#         r1 = lambda wildcards:SAMPLES.at[wildcards.sample,'fq1'],
-#         r2 = lambda wildcards:SAMPLES.at[wildcards.sample,'fq2']
-#     output:
-#         r1 = "results/trimmed/{sample}_1.fastq.gz", #trimmed R1 fastq(gz) file 
-#         r2 = "results/trimmed/{sample}_2.fastq.gz", #trimmed R2 fastq(gz) file (if PE)
-#         r1_unpaired = "results/trimmed/{sample}_1_unpaired.fastq.gz", #unpaired R1 fastq(gz) file (if PE)
-#         r2_unpaired = "results/trimmed/{sample}_2_unpaired.fastq.gz" #unpaired R2 fastq(gz) file (if PE)
-#     log:
-#         "logs/trimmomatic/{sample}.log"
-#     conda:
-#         "../envs/mapping.yaml"
-#     threads: 4
-#     params:
-#         trim_mode=config["trimmomatic_params"]["mode"],
-#         adapter=config["trimmomatic_params"]["adapter_file"],
-#         seed_mismatch=config["trimmomatic_params"]["seed_mismatch"],
-#         palindrome=config["trimmomatic_params"]["palindrome_treshold"],
-#         simple=config["trimmomatic_params"]["simple_treshold"],
-#         min_adapter=config["trimmomatic_params"]["min_adapter_length"],
-#         keep_reads=config["trimmomatic_params"]["keep_both_reads"]
-
-#     shell:
-#         """
-#         trimmomatic {params.trim_mode} \
-#         -threads {threads} \
-#         {input} {output} \
-#         ILLUMINACLIP:{params.adapter}:{params.seed_mismatch}:{params.palindrome}:{params.simple}:{params.min_adapter}:{params.keep_reads} \
-#         > {log} 2>&1
-#         """
-
-
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
 rule run_coocked_qc:
     input:
@@ -122,11 +89,17 @@ rule qualimap:
 
 rule multiqc_all:
     input:
+        # Qualimap reports
         expand("results/qc/qualimap/{sample}", sample=SAMPLES.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
-        expand("results/qc/fastqc/processed/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['fq1', 'fq2'])
+        # FastQC reports
+        expand("results/qc/fastqc/processed/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['fq1', 'fq2']),
+        # Samtools mapping statistics
+        expand("results/stats/{sample}.flagstat", sample=SAMPLES.index),
+        expand("results/stats/{sample}.stats", sample=SAMPLES.index)
     output:
         report_file="results/qc/multiqc_all.html",
         out_dir=directory("results/qc/multiqc_all_data")
+
     log:
         "logs/multiqc/all.log"
     conda:
