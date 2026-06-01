@@ -1,5 +1,6 @@
 
-ref: "resources/reference/human_adenovirus_A.fasta"
+#ref: "resources/reference/human_adenovirus_A.fasta"
+ref: "resources/reference/ncbi_dataset/data/GCA_019453945.1/GCA_019453945.1_ASM1945394v1_genomic.fna"
 samples: "resources/samples.tsv"
 
 analysis_options:
