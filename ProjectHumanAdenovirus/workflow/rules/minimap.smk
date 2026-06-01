@@ -61,8 +61,20 @@ rule minimap2:
     log:
         "logs/minimap2/{sample}.log",
     threads: 4
+    params:
+        kmer_size=15,
+        seed_density=5,
+        mismatch_penalty=3,
+        gap_open_penalty="4,16",
+        gap_extension_penalty="2,1",
     conda:
         "../envs/mapping.yaml"
+    # shell:
+    #     """
+    #     minimap2 -ax sr -k 15 -w 5 -B 3 -O 4,16 -E 2,1 -t {threads} {input.ref_index} {input.r1} {input.r2} 2>{log} | \
+    #     samtools sort -@ {threads} -o {output.bam} - >>{log} 2>&1
+    #     """
+    
     shell:
         """
         minimap2 -t {threads} -ax sr {input.ref_index} {input.r1} {input.r2} 2>{log} | \
