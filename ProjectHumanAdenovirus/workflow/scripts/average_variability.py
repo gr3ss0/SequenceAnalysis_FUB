@@ -14,5 +14,5 @@ for i in range(0,len(variability),WINDOW_SIZE):
     average_variability.append(np.mean(window_variability))
     print(f"Window {i//WINDOW_SIZE + 1}: Average Variability = {average_variability[-1]}")
 
-np.savetxt(snakemake.output.variability, average_variability, fmt="%.6f", delimiter=",")
+np.savetxt(snakemake.output.variability, average_variability, fmt="%.6f", delimiter="\t")
 

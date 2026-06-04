@@ -4,8 +4,7 @@ import pandas as pd
 configfile: "config/config.yaml"
 
 SAMPLES = pd.read_csv(config["samples"], index_col="sample", sep='\t')
-#GROUPS = SAMPLES['group'].unique()
-# print("DEBUG SAMPLES INDEX:", list(SAMPLES.index))
+
 REF_BASENAME = "reference"
 WINDOW_SIZE = config.get("variability_params", {}).get("window_size", 100)
 # files at the end of analysis
@@ -15,7 +14,7 @@ rule all:
 		expand("results/consensus/{sample}_consensus.fa", sample=SAMPLES.index), #deliverable 1 : fasta file with the assembled genome for each sequenced strain.
 
 		"results/phylo_tree/adenovirus_tree.png", #deliverable 2: phylogenetic tree in Newick format and visualised in pdf or png format.
-		
+		"results/phylo_tree/iqtree_out.treefile", #Newick format tree file
 		f"results/variability/average_variability_{WINDOW_SIZE}.tsv", #text file containing the average sequence variability for each window of length x
 		f"results/variability/variability_plot_{WINDOW_SIZE}.png", #plot showing the variability along the sequenced genome
 		
@@ -28,7 +27,7 @@ rule all:
 		
 		
 		"results/qc/multiqc_all.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
-		# TODO: should we execute FastQC on row data always or only prepare direct exection?
+		
 		"results/qc/multiqc_raw.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
 
 

@@ -2,7 +2,7 @@ rule variability_per_position:
     input:
         msa="results/phylo_tree/msa.fa"
     output:
-        variability="results/variability/variability_per_position.csv"
+        variability="results/variability/variability_per_position.tsv"
     log:
         "logs/variability_per_position.log"
     threads: 1
@@ -15,7 +15,7 @@ rule variability_per_window:
     input:
         variability = rules.variability_per_position.output.variability
     output:
-        variability = f"results/variability/average_variability_{WINDOW_SIZE}.csv"
+        variability = f"results/variability/average_variability_{WINDOW_SIZE}.tsv"
     log:
         "logs/variability_per_window.log"
     threads: 1
