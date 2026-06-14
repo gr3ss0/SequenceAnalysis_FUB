@@ -1,0 +1,98 @@
+import os
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+SAMPLES = pd.read_csv(config["samples"], index_col="sample", sep='\t')
+#GROUPS = SAMPLES['group'].unique()
+# print("DEBUG SAMPLES INDEX:", list(SAMPLES.index))
+REF_BASENAME = "reference"
+WINDOW_SIZE = config.get("variability_params", {}).get("window_size", 100)
+# files at the end of analysis
+
+def get_map_input(wildcards):
+    if config["analysis_options"].get("skip_trimming", False):
+        return {
+            "r1": f"results/trimmed/{wildcards.sample}.1.fastq",
+            "r2": f"results/trimmed/{wildcards.sample}.2.fastq"
+        }
+
+    else:
+        return {
+            "r1": SAMPLES.at[wildcards.sample, 'fq1'],
+            "r2": SAMPLES.at[wildcards.sample, 'fq2']
+        }
+
+
+rule all:
+	input:
+		expand("results/consensus/{sample}_consensus.fa", sample=SAMPLES.index), #deliverable 1 : fasta file with the assembled genome for each sequenced strain.
+
+		"results/phylo_tree/adenovirus_tree.png", #deliverable 2: phylogenetic tree in Newick format and visualised in pdf or png format.
+		"results/phylo_tree/iqtree_out.treefile", #Newick format tree file
+		f"results/variability/average_variability_{WINDOW_SIZE}.tsv", #text file containing the average sequence variability for each window of length x
+		f"results/variability/variability_plot_{WINDOW_SIZE}.png", #plot showing the variability along the sequenced genome
+		
+		# map
+		#expand("results/filtered/{sample}_mapping.bam", sample=SAMPLES.index),
+		# produce all stats
+		#expand("results/stats/{sample}.stats", sample=SAMPLES.index),
+		#"results/stats/merged.tsv",
+
+		
+		
+		"results/qc/multiqc_all.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+		
+		"results/qc/multiqc_raw.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+
+		# Exercise 5A: mandatory Kraken2 screening report.
+		# (also reachable on its own via `snakemake --use-conda --cores 10 screen`)
+		"results/qc/multiqc_screen.html",
+
+
+
+include: "rules/decontamination.smk"
+include: "rules/samtools.smk"
+include: "rules/qc.smk"
+include: "rules/ivar.smk"
+include: "rules/minimap.smk"
+include: "rules/variability.smk"
+
+rule aggregate_stats:
+	input:
+		list_of_stats = lambda wildcards: expand(
+					"results/stats/{sample}.stats", sample=SAMPLES.index)
+	output:
+		"results/stats/merged.tsv"
+	script:
+		"scripts/merge_stats.py"
+
+rule phylo_tree:
+	input:
+		"results/phylo_tree/msa.fa"
+	output:
+		multiext("results/phylo_tree/iqtree_out", ".bionj", ".log", ".mldist", ".model.gz", ".treefile", ".iqtree", ".ckp.gz")
+		
+	log:
+		"logs/phylo_tree.log"
+	threads: 4
+	conda:
+		"envs/phylo.yaml"
+	shell:
+		"""
+        iqtree -s {input} -nt {threads} -pre results/phylo_tree/iqtree_out > {log} 2>&1
+        """
+
+rule visualize_tree:
+    input:
+        "results/phylo_tree/iqtree_out.treefile"
+    output:
+        "results/phylo_tree/adenovirus_tree.png"
+    conda:
+        "envs/phylo.yaml"
+    script:
+        "scripts/visualize_tree.py"
+
+
+
+

@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - iqtree=2.4.0
+  - mafft
+  - python >=3.9
+  - biopython
+  - matplotlib
