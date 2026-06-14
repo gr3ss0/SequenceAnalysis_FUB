@@ -1,5 +1,6 @@
 resources/
 !resources/.gitkeep
+!resources/samples.tsv
 results/
 !results/.gitkeep
 .snakemake/
@@ -8,5 +9,4 @@ logs/
 *.swp
 *.fa
 *.gz
-shubh/
 submission/
