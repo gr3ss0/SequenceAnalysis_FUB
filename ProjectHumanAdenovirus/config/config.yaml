@@ -3,7 +3,7 @@
 
 # reference is of strain HadV-C, which is the most abundant in the samples, and has the highest coverage.
 # https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_019453945.1/
-ref: "resources/reference/ncbi_dataset/data/GCA_019453945.1/GCA_019453945.1_ASM1945394v1_genomic.fna"
+ref: "resources/reference/GCA_019453945.1_ASM1945394v1_genomic.fna"
 samples: "resources/samples.tsv"
 
 analysis_options:
