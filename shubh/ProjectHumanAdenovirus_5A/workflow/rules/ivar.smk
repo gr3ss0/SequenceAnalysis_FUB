@@ -32,9 +32,21 @@ rule concat_consensus:
         "results/consensus/combined.fa"
     log:
         "logs/concat_consensus.log"
-    threads: 1
-    shell:
-        "cat {input} > {output}"
+    
+    run:
+        from pathlib import Path
+
+        with open(output[0], "w") as out:
+            for fasta in input:
+                sample = Path(fasta).name.replace("_consensus.fa", "")
+
+                with open(fasta) as fin:
+                    for line in fin:
+                        if line.startswith(">"):
+                            out.write(f">{sample}\n")
+                        else:
+                            out.write(line)
+    
 
 
 rule msa:

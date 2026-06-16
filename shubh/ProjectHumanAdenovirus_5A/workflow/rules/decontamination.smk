@@ -1,34 +1,6 @@
-# Path to the (optional) contamination multi-FASTA, "" if not enabled
-CONTAMINATION_FASTA = config.get("decontamination", {}).get("contamination_fasta", "")
-
-
-def contamination_enabled():
-    """True if a contamination fasta was configured -> decontamination on."""
-    return CONTAMINATION_FASTA not in (None, "", "none", "None")
-
-
-def get_minimap_input(wildcards):
-    """
-    Reads that are used as input for the mapping based assembly
-    (rule minimap2 in rules/minimap.smk).
-    
-    """
-    if contamination_enabled():
-        return {
-            "r1": f"results/decontaminated/{wildcards.sample}.1.fastq",
-            "r2": f"results/decontaminated/{wildcards.sample}.2.fastq",
-        }
-    return get_map_input(wildcards)
-
-
-# -------------------------------------------------------------------
-# 1) Mandatory taxonomic screening with Kraken2
-# -------------------------------------------------------------------
-
-
 rule kraken2:
     input:
-        unpack(get_map_input),
+        unpack(get_map_input), #what was the input to minimap in 4B, is input to Kraken in 5A, this can be trimmed or untrimmed reads depending on the config for trimming
         db = config["kraken2_db"]
     output:
         report = "results/kraken2/{sample}.kraken2.report.txt"
@@ -58,7 +30,7 @@ rule multiqc_screen:
     log:
         "logs/multiqc/screen.log"
     conda:
-        "../envs/kraken2.yaml"
+        "../envs/mapping.yaml" 
     shell:
         """
         multiqc {input} \
@@ -69,108 +41,100 @@ rule multiqc_screen:
 
 
 rule screen:
-    # Checkpoint target:
-    #   snakemake --use-conda --cores 10 screen
-    #
-    # Runs QC + Kraken2 for every sample and collects all reports in a
-    # single MultiQC report, so the user can inspect it and decide
-    # whether (and which) sequences belong in a contamination fasta
-    # (config["decontamination"]["contamination_fasta"]).
+    # this rule just takes as input the html produced by multi_qc_screen
+    #   snakemake --use-conda --cores 10 screen can be used to stop here and inspect the multiqc report
     input:
         "results/qc/multiqc_screen.html"
 
 
-# -------------------------------------------------------------------
-# 2) Optional decontamination (mapping + filtering)
-#
-# Only enters the DAG if contamination_enabled() == True, because the
-# only consumer of these outputs is get_minimap_input().
-# -------------------------------------------------------------------
+#Until here, the steps were mandatory
+# From here on, its the optional steps
 
-# https://snakemake-wrappers.readthedocs.io/ (plain bowtie2, same tool
-# as used elsewhere in this workflow, see envs/mapping.yaml)
-rule decon_index:
-    input:
-        fasta = CONTAMINATION_FASTA
-    output:
-        multiext(
-            "results/decon_index/contamination",
-            ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2",
-            ".rev.1.bt2", ".rev.2.bt2"
-        )
-    params:
-        prefix = "results/decon_index/contamination"
-    log:
-        "logs/decon_index/build.log"
-    threads: 4
-    conda:
-        "../envs/mapping.yaml"
-    shell:
-        "bowtie2-build --threads {threads} {input.fasta} {params.prefix} > {log} 2>&1"
+# Only enters the DAG if contamination_enabled() == True
+# Because then minimap will be looking for some output files of the below rules as its input
+
+if contamination_enabled():
+    rule decon_index: #building the bowtie2 index for the mapping to the contamination sequences
+        input:
+            fasta = CONTAMINATION_FASTA
+        output:
+            multiext(
+                "results/decon_index/contamination",
+                ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2",
+                ".rev.1.bt2", ".rev.2.bt2"
+            )
+        params:
+            prefix = "results/decon_index/contamination"
+        log:
+            "logs/decon_index/build.log"
+        threads: 4
+        conda:
+            "../envs/mapping.yaml"
+        shell:
+            "bowtie2-build --threads {threads} {input.fasta} {params.prefix} > {log} 2>&1"
 
 
-rule decon_map:
-    input:
-        unpack(get_map_input),
-        index = rules.decon_index.output
-    output:
-        bam = "results/decontamination/{sample}_contamination_mapped.bam"
-    params:
-        prefix = "results/decon_index/contamination"
-    log:
-        "logs/decon_map/{sample}.log"
-    threads: 4
-    conda:
-        "../envs/mapping.yaml"
-    shell:
-        """
-        bowtie2 -p {threads} -x {params.prefix} \
-            -1 {input.r1} -2 {input.r2} 2> {log} | \
-        samtools view -@ {threads} -bS - > {output.bam} 2>> {log}
-        """
+    rule decon_map:
+        input:
+            unpack(get_map_input), #the input to minimap in 4B is input to decon_map in 5A
+            index = rules.decon_index.output
+        output:
+            bam = "results/decontamination/{sample}_contamination_mapped.bam"
+        params:
+            prefix = "results/decon_index/contamination"
+        log:
+            "logs/decon_map/{sample}.log"
+        threads: 4
+        conda:
+            "../envs/mapping.yaml"
+        shell:
+            """
+
+            bowtie2 -p {threads} -x {params.prefix} \
+                -1 {input.r1} -2 {input.r2} 2> {log} | \
+            samtools view -@ {threads} -bS - > {output.bam} 2>> {log}
+            """
 
 
-rule decon_filter:
-    input:
-        bam = "results/decontamination/{sample}_contamination_mapped.bam"
-    output:
-        r1 = "results/decontaminated/{sample}.1.fastq",
-        r2 = "results/decontaminated/{sample}.2.fastq",
-        name_sorted = temp("results/decontamination/{sample}_unmapped_namesorted.bam")
-    log:
-        "logs/decon_filter/{sample}.log"
-    threads: 4
-    conda:
-        "../envs/mapping.yaml"
-    shell:
-        """
-        set -e -o pipefail
-        
-        # Keep only read pairs where BOTH mates are unmapped against the
-        # contamination reference, i.e. reads that do NOT belong to a
-        # contaminant (samtools flag 4 = read unmapped, 8 = mate unmapped).
-        samtools view -@ {threads} -b -f 12 {input.bam} 2> {log} | \
-        samtools sort -@ {threads} -n -o {output.name_sorted} - >> {log} 2>&1
+    rule decon_filter: # this is the filtering, the output of this rule is the input to the minimap rule if decontamination is enabled, see function get_minimap_input
+        input:
+            bam = "results/decontamination/{sample}_contamination_mapped.bam"
+        output:
+            r1 = "results/decontaminated/{sample}.1.fastq",
+            r2 = "results/decontaminated/{sample}.2.fastq",
+            name_sorted = temp("results/decontamination/{sample}_unmapped_namesorted.bam")
+        log:
+            "logs/decon_filter/{sample}.log"
+        threads: 4
+        conda:
+            "../envs/mapping.yaml"
+        shell:
+            """
+            set -e -o pipefail
+            
+            # 12 is that both the reads in a pair should be unmapped for it to be kept as a read pair for downstream assembly
+            samtools view -@ {threads} -b -f 12 {input.bam} 2> {log} | \
+            samtools sort -@ {threads} -n -o {output.name_sorted} - >> {log} 2>&1
 
-        samtools fastq -@ {threads} \
-            -1 {output.r1} -2 {output.r2} \
-            -0 /dev/null -s /dev/null -n \
-            {output.name_sorted} >> {log} 2>&1
-        """
+            samtools fastq -@ {threads} \
+                -1 {output.r1} -2 {output.r2} \
+                -0 /dev/null -s /dev/null -n \
+                {output.name_sorted} >> {log} 2>&1
+            """
 
+    # Note: there is a folder called decontamination and another called decontaminated
+    # They differ in that decontaminated contains the filtered output and decontamination contains everything else
 
-rule decon_stats:
-    # quick flagstat of the decontamination mapping, e.g. to see how many
-    # read pairs were classified as contamination; included in
-    # multiqc_all when decontamination is enabled (see rules/qc.smk)
-    input:
-        bam = "results/decontamination/{sample}_contamination_mapped.bam"
-    output:
-        flagstat = "results/decontamination/{sample}_contamination.flagstat"
-    log:
-        "logs/decon_stats/{sample}.log"
-    threads: 1
-    conda:
-        "../envs/mapping.yaml"
-    shell:
-        "samtools flagstat {input.bam} > {output.flagstat} 2> {log}"
+    rule decon_stats: 
+        #this is included in rule multiqc_all when decontamination is enabled (can be seen in qc.smk)
+        input:
+            bam = "results/decontamination/{sample}_contamination_mapped.bam" #only doing flagstats not idxtstats so no need of bai, apart from that it is similar to the rule calculate_stats in samtools.smk
+        output:
+            flagstat = "results/decontamination/{sample}_contamination.flagstat"
+        log:
+            "logs/decon_stats/{sample}.log"
+        threads: 1
+        conda:
+            "../envs/mapping.yaml"
+        shell:
+            "samtools flagstat {input.bam} > {output.flagstat} 2>{log}"

@@ -4,7 +4,7 @@ configfile: "config/config.yaml"
 # https://snakemake-wrappers.readthedocs.io/en/v7.8.0/wrappers/bio/minimap2/index.html
 rule minimap2_index:
     input:
-        target=config["ref"]
+        target=config["ref"] #same as 4B for the 5A
     output:
         "results/index/reference.mmi"
     log:
@@ -34,26 +34,11 @@ rule minimap2_index:
 #         "v7.6.0/bio/minimap2/aligner"
 
 
-def get_map_input(wildcards):
-    # Case 1: Trimming was skipped, use raw data from SAMPLES dataframe
-    if config["analysis_options"].get("skip_trimming", False):
-        return {
-            "r1": f"results/trimmed/{wildcards.sample}.1.fastq",
-            "r2": f"results/trimmed/{wildcards.sample}.2.fastq"
-        }
-    
-    # Case 2: Trimming was performed, use results from your trimming rule
-    # Note: Use the actual filenames produced by your Trimmomatic rule
-    else:
-        return {
-            "r1": SAMPLES.at[wildcards.sample, 'fq1'],
-            "r2": SAMPLES.at[wildcards.sample, 'fq2']
-        }
 
 
 rule minimap2:
     input:
-        unpack(get_minimap_input),
+        unpack(get_minimap_input), #changed from get_map_input in 4B, so this might take the reads after decontamination 
         ref_index = rules.minimap2_index.output,  # REF, can be either genome index or genome fasta
         
     output:
