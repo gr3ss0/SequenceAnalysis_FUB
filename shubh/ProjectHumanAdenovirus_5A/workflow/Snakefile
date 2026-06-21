@@ -1,0 +1,86 @@
+import os
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+SAMPLES = pd.read_csv(config["samples"], index_col="sample", sep='\t')
+
+REF_BASENAME = "reference"
+WINDOW_SIZE = config.get("variability_params", {}).get("window_size", 100)
+# files at the end of analysis
+
+def get_map_input(wildcards): #this function stays from 4A but now this isn't input into minimap directly
+
+    if config["analysis_options"].get("skip_trimming", False):
+        return {
+            "r1": f"results/trimmed/{wildcards.sample}.1.fastq",
+            "r2": f"results/trimmed/{wildcards.sample}.2.fastq"
+        }
+
+    else:
+        return {
+            "r1": SAMPLES.at[wildcards.sample, 'fq1'],
+            "r2": SAMPLES.at[wildcards.sample, 'fq2']
+        }
+
+#from here the things are new to 5A:
+
+CONTAMINATION_FASTA = config.get("decontamination", {}).get("contamination_fasta", "")
+
+
+def contamination_enabled(): #this function returns True or False depending on whether CONTAMINATION_FASTA is a path or is just ""
+    
+    return CONTAMINATION_FASTA not in (None, "", "none", "None")
+
+def get_minimap_input(wildcards): #this is new function which will be minimap input, it may be different from 4A or same depending on whether de-contamination was done
+
+    if contamination_enabled(): #minimap input changed compared to 4A
+        return {
+            "r1": f"results/decontaminated/{wildcards.sample}.1.fastq",
+            "r2": f"results/decontaminated/{wildcards.sample}.2.fastq",
+        }
+    return get_map_input(wildcards) #if contamination is disabled, then minimap will take the same input as in 4B
+
+rule all:
+	input:
+		expand("results/consensus/{sample}_consensus.fa", sample=SAMPLES.index), 
+
+		"results/phylo_tree/adenovirus_tree.png",
+		"results/phylo_tree/iqtree_out.treefile",
+		f"results/variability/average_variability_{WINDOW_SIZE}.tsv", 
+		f"results/variability/variability_plot_{WINDOW_SIZE}.png", 
+		
+
+		
+		
+		"results/qc/multiqc_all.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+		
+		"results/qc/multiqc_raw.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+
+		# This one is new in Exercise 5A
+		
+		"results/qc/multiqc_screen.html" #this one is made always, irrespective of config
+
+
+
+include: "rules/decontamination.smk" #this is the new rule file in 5A which didn't exist in 4B
+include: "rules/samtools.smk"
+include: "rules/qc.smk"
+include: "rules/ivar.smk"
+include: "rules/minimap.smk"
+include: "rules/variability.smk"
+include: "rules/tree.smk"
+rule aggregate_stats:
+	input:
+		list_of_stats = lambda wildcards: expand(
+					"results/stats/{sample}.stats", sample=SAMPLES.index)
+	output:
+		"results/stats/merged.tsv"
+	script:
+		"scripts/merge_stats.py"
+
+
+
+
+
+

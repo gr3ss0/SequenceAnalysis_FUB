@@ -1,0 +1,73 @@
+
+#ref: "resources/reference/human_adenovirus_A.fasta"
+
+# reference is of strain HadV-C, which is the most abundant in the samples, and has the highest coverage.
+# https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_019453945.1/
+ref: "resources/reference/GCA_019453945.1_ASM1945394v1_genomic.fna" #this is the same as the reference used in 4B, we did not change anything in the workflow apart from introducing de-contamination
+samples: "resources/samples.tsv"
+
+analysis_options:
+  skip_trimming: "False"
+  skip_fastQC: "False"
+  skip_qualimap: "False"
+
+ivar_params:
+  max_depth: "60000"
+  min_freq: "0.5"
+  min_qual: "20"
+  min_cov: "10"
+
+variability_params:
+  window_size: "1"
+  
+
+#bowtie2_params:
+  #min_fragment_ln: "0"
+  #seed: "0"
+  #ref_index_dir: "results/ref_index/"
+
+# http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf
+trimmomatic_params:
+  mode: "PE"
+  # ILLUMINACLIP options
+  adapter_file: "resources/adapters/TruSeq2-PE.fa"
+  seed_mismatch: "2"
+  palindrome_treshold: "30"
+  simple_treshold: "10"
+  min_adapter_length: "8" # default 8
+  keep_both_reads: "False" #default false
+  # there are other trimmers such as SLIDINGWINDOW which we don't implement
+
+fastp: #from feedback of 4B
+  merge: false
+  min_length: 50
+  qualified_quality_phred: 20
+  trim_front: 0
+  trim_tail: 0
+
+iqtree: #from feedback of 4B
+  bootstrap: 1000
+  model: "GTR+G"
+  threads: 4
+
+# This is where Exercise 5A stuff begins:
+
+
+#Kraken2-DB Downloaded from:
+#   https://benlangmead.github.io/aws-indexes/k2
+#Standard 8 GB
+
+#this is the folder where the tar.gz contents should be extracted
+kraken2_db: "resources/kraken2_db"
+
+decontamination:
+  
+  #optional step
+  #   Case 1: leave contamination_fasta path empty ("")  -> decontamination skipped
+  #   Case 2: set a path -> decontamination is ENABLED
+
+  
+
+  contamination_fasta: "" #user needs to replace with path to their contamination FASTA
+
+#

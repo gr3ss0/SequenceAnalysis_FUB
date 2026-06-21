@@ -32,4 +32,4 @@ for i in range(MSA.get_alignment_length()):
     print(f"Position {i+1}: Variability = {variability}")
 
 # Save the variability values to a text file
-np.savetxt(snakemake.output.variability, entropies, fmt="%.6f", delimiter='\t')
+np.savetxt(snakemake.output.variability, entropies, fmt="%.6f", delimiter="\t")

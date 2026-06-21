@@ -25,21 +25,14 @@ rule ivar_consensus:
         ivar consensus -p {params.prefix} -q {params.min_qual} -t {params.min_freq} -m {params.min_cov} -n N) > {log} 2>&1
         """
 
-#rule concat_consensus:
-   # input:
-   #     expand("results/consensus/{sample}_consensus.fa", sample=SAMPLES.index)
-   # output:
-      #  "results/consensus/combined.fa"
-    #log:
-     #   "logs/concat_consensus.log"
-    #threads: 1
-    #shell:
-       # "cat {input} > {output}"
 rule concat_consensus:
     input:
         expand("results/consensus/{sample}_consensus.fa", sample=SAMPLES.index)
     output:
         "results/consensus/combined.fa"
+    log:
+        "logs/concat_consensus.log"
+    
     run:
         from pathlib import Path
 
@@ -53,6 +46,7 @@ rule concat_consensus:
                             out.write(f">{sample}\n")
                         else:
                             out.write(line)
+    
 
 
 rule msa:
