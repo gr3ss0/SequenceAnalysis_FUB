@@ -1,0 +1,67 @@
+import os
+from glob import glob
+READ_DIR = "../src/tiny" #path to the directory
+
+sam_files = glob(os.path.join(READ_DIR, '*.sam')) #this is a list of all sam files
+SAMPLES_LIST_SAM = [os.path.basename(f) for f in sam_files] #this is a list of the file names without the path but with the extension
+
+SAMPLES = [f.replace('.sam', '') for f in SAMPLES_LIST_SAM] #this is a list of the file names without the path and without the extension
+
+ref1='NZ_AMKI01000040.1'
+ref2='NZ_AMKI01000041.1'
+rule all:
+    input:
+        expand('results/bam/{sample}.bam', sample=SAMPLES),
+        expand('results/bam_sorted/{sample}_sorted.bam', sample=SAMPLES),
+        expand('results/bam_sorted/{sample}_sorted.bam.bai', sample=SAMPLES), 
+        expand('results/stats/{sample}_stats.txt', sample=SAMPLES), 
+        expand('results/filtered/{sample}_filtered.bam', sample=SAMPLES)
+    
+
+rule sam_bam:
+    input:
+        os.path.join(READ_DIR, '{sample}.sam')
+    output:
+        'results/bam/{sample}.bam'
+    shell:
+        'samtools view -b -o {output} {input}'
+
+rule sort_bam:
+    input:
+        'results/bam/{sample}.bam'
+    output:
+        'results/bam_sorted/{sample}_sorted.bam'
+    shell:
+        'samtools sort -o {output} {input}'
+
+rule bam_index:
+    input:
+        'results/bam_sorted/{sample}_sorted.bam'
+    output:
+        'results/bam_sorted/{sample}_sorted.bam.bai'
+    shell:
+        'samtools index {input}'
+
+rule bam_stats:
+    input:
+        'results/bam_sorted/{sample}_sorted.bam', 
+        'results/bam_sorted/{sample}_sorted.bam.bai'
+    output:
+        'results/stats/{sample}_stats.txt'
+    shell:
+        'samtools idxstats {input[0]} 1> {output}'
+
+rule filter_bam:
+    input:
+        'results/bam_sorted/{sample}_sorted.bam',
+        'results/bam_sorted/{sample}_sorted.bam.bai'
+        
+        
+    output:
+        'results/filtered/{sample}_filtered.bam'
+    params:
+        ref1=ref1,
+        ref2=ref2
+    shell:
+        'samtools view -b -o {output} {input[0]} {params.ref1} {params.ref2}'
+

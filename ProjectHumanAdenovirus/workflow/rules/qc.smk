@@ -11,7 +11,7 @@ rule run_raw_qc_per_file:
         extra="--quiet",
         mem_overhead_factor=0.1,
     log:
-        "logs/fastqc/raw/{sample}{read}.log",
+        "logs/fastqc/raw/{sample}_{read}.log",
     threads: 1
     resources:
         mem_mb = 1024,
@@ -30,7 +30,6 @@ rule fastp_pe:
         # Unpaired reads separately
         unpaired1="results/trimmed/{sample}.u1.fastq",
         unpaired2="results/trimmed/{sample}.u2.fastq",
-        merged="results/trimmed/{sample}.merged.fastq",
         failed="results/trimmed/{sample}.failed.fastq",
         html="results/report/{sample}.html",
         json="results/report/{sample}.json"
@@ -38,7 +37,7 @@ rule fastp_pe:
         "logs/fastp/{sample}.log"
     params:
         #adapters="--adapter_sequence ACGGCTAGCTA --adapter_sequence_r2 AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC",
-        extra="--merge"
+        extra=""
     threads: 4
     wrapper:
         "v7.1.0/bio/fastp"
@@ -97,6 +96,10 @@ rule multiqc_all:
         # Samtools mapping statistics
         expand("results/stats/{sample}.flagstat", sample=SAMPLES.index),
         expand("results/stats/{sample}.stats", sample=SAMPLES.index)
+        
+        #from here new to 5A
+        expand("results/kraken2/{sample}.kraken2.report.txt", sample=SAMPLES.index), #this is the input to the multiqc_screen rule, this is always produced
+        expand("results/decontamination/{sample}_contamination.flagstat", sample=SAMPLES.index) if contamination_enabled() else [] #this is only produced in the case decontamination is enabled. This is from the rule decon_stats
     output:
         report_file="results/qc/multiqc_all.html",
         out_dir=directory("results/qc/multiqc_all_data")
