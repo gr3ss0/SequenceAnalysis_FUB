@@ -9,7 +9,7 @@ variability = np.loadtxt(snakemake.input.variability, delimiter=",", dtype=float
 
 average_variability = []
 
-for i in range(0,len(variability),WINDOW_SIZE):
+for i in range(0,len(variability),1):   # fix Minor: overlapping windows
     window_variability = variability[i:i+WINDOW_SIZE]
     average_variability.append(np.mean(window_variability))
     print(f"Window {i//WINDOW_SIZE + 1}: Average Variability = {average_variability[-1]}")
