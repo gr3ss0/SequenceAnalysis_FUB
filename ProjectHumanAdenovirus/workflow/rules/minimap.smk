@@ -1,19 +1,18 @@
 configfile: "config/config.yaml"
 
 
-# https://snakemake-wrappers.readthedocs.io/en/v7.8.0/wrappers/bio/minimap2/index.html
 rule minimap2_index:
     input:
         target=config["ref"]
     output:
-        "results/index/reference.mmi"
+        index="results/index/reference.mmi"
     log:
         "logs/minimap2_index/ref.log"
-    params:
-        extra=""  # optional additional args
     threads: 4
-    wrapper:
-        "v7.1.0/bio/minimap2/index"
+    conda:
+        "../envs/mapping.yaml"
+    shell:
+        "minimap2 -t {threads} -d {output.index} {input.target} > {log} 2>&1"
 
 
 # # https://snakemake-wrappers.readthedocs.io/en/v7.8.0/wrappers/bio/minimap2/aligner.html
