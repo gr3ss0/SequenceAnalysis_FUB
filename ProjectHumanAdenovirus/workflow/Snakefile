@@ -38,6 +38,7 @@ include: "rules/qc.smk"
 include: "rules/ivar.smk"
 include: "rules/minimap.smk"
 include: "rules/variability.smk"
+include: "rules/de-novo.smk"
 
 rule aggregate_stats:
 	input:
