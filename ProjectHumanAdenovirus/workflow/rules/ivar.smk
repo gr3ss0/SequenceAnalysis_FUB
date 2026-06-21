@@ -14,15 +14,17 @@ rule ivar_consensus:
         prefix = lambda wildcards, output: output[0].replace(".fa", ""),
         max_depth=config["ivar_params"].get("max_depth", 60000),
         min_freq=config["ivar_params"].get("min_freq", 0.6),
-        min_qual=config["ivar_params"].get("min_qual", 20),
-        min_cov=config["ivar_params"].get("min_cov", 10)
+        min_basequal=config["ivar_params"].get("min_basequal", 20),
+        min_mapqual = config["ivar_params"].get("min_mapwual", 20),
+        min_cov=config["ivar_params"].get("min_cov", 10),
+        min_windowqual = config["ivar_params"].get("min_windowqual", 20)
 
     conda:
         "../envs/ivar.yaml"
     shell:
         """
-        (samtools mpileup -A -d {params.max_depth} -Q {params.min_qual} -q {params.min_qual} -f {input.ref_fa} {input.sorted_bam} | \
-        ivar consensus -p {params.prefix} -q {params.min_qual} -t {params.min_freq} -m {params.min_cov} -n N) > {log} 2>&1
+        (samtools mpileup -A -d {params.max_depth} -Q {params.min_basequal} -q {params.min_mapqual} -f {input.ref_fa} {input.sorted_bam} | \
+        ivar consensus -p {params.prefix} -q {params.min_windowqual} -t {params.min_freq} -m {params.min_cov} -n N) > {log} 2>&1
         """
 
 #rule concat_consensus:

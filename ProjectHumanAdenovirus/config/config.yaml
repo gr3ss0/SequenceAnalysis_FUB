@@ -14,7 +14,9 @@ analysis_options:
 ivar_params:
   max_depth: "60000"
   min_freq: "0.5"
-  min_qual: "20"
+  min_basequal: "20"
+  min_mapqual: "20"
+  min_windowqual: "20"
   min_cov: "10"
 
 variability_params:
