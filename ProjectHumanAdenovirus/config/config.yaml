@@ -40,3 +40,9 @@ trimmomatic_params:
   # there are other trimmers such as SLIDINGWINDOW which we don't implement
 
 
+#Kraken2-DB Downloaded from:
+#   https://benlangmead.github.io/aws-indexes/k2
+#Standard 8 GB
+
+#this is the folder where the tar.gz contents should be extracted
+kraken2_db: "resources/kraken2_db"
