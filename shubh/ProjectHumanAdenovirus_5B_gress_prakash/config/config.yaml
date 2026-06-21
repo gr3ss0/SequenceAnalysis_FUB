@@ -1,0 +1,89 @@
+
+#ref: "resources/reference/human_adenovirus_A.fasta"
+
+# reference is of strain HadV-C, which is the most abundant in the samples, and has the highest coverage.
+# https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_019453945.1/
+#ref: "resources/reference/GCA_019453945.1_ASM1945394v1_genomic.fna" #this was the single fixed reference used in 4B/5A
+#this is no longer used in 5B since the reference is obtained from the patching rather than hardcoded
+samples: "resources/samples.tsv"
+
+analysis_options:
+  skip_trimming: False
+  skip_fastQC: False
+  skip_qualimap: False
+  skip_screening: False #feedback in 5A
+  skip_quast: False #new in 5B, didn't have Quast before 5B
+
+ivar_params:
+  max_depth: 60000
+  min_freq: 0.5
+  min_cov: 10
+  mpileup_min_base_quality: 20 #-Q in mpileup
+  mpileup_min_map_quality: 20 #-q in mpileup
+  ivar_min_quality: 20 #-q in ivar consensus
+
+
+variability_params:
+  window_size: 20
+  
+
+fastp: #from feedback of 4B
+  merge: false
+  min_length: 50
+  qualified_quality_phred: 20
+  trim_front: 0
+  trim_tail: 0
+
+iqtree: #from feedback of 4B
+  bootstrap: 1000
+  model: "GTR+G"
+  threads: 4
+
+# This is where Exercise 5A stuff begins:
+
+
+#Kraken2-DB Downloaded from:
+#   https://benlangmead.github.io/aws-indexes/k2
+#Standard 8 GB
+
+#this is the folder where the tar.gz contents should be extracted
+kraken2_db: "resources/kraken2_db"
+
+decontamination:
+  
+  #optional step
+  #   Case 1: leave contamination_fasta path empty ("")  -> decontamination skipped
+  #   Case 2: set a path -> decontamination is ENABLED
+
+  
+
+  contamination_fasta: "resources/contamination/contamination.fasta" #user needs to replace with path to their contamination FASTA
+
+#
+
+# This is where Exercise 5B stuff begins:
+
+
+assembly_params:
+  candidate_references: "resources/reference/candidate_references.fasta" #used in reference_selection.smk
+
+  spades: #for the de-novo assembly
+    memory_gb: 16 # -m
+    extra: ""     
+
+  polishing: #uses Bowtie2
+    
+    bowtie2_extra: ""
+
+  blast:
+    evalue: "1e-10"
+
+  ragtag_patch:
+    
+    min_len: 2000  # -s
+    max_dist: 0.2        # -i
+    extra: ""
+
+  quast:
+    extra: ""
+
