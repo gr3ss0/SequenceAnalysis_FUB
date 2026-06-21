@@ -3,7 +3,8 @@ channels:
   - bioconda
 dependencies:
   - iqtree=2.4.0
-  - mafft
+  - mafft=7.526 # fix 5B Major: 
   - python >=3.9
+  
+  - matplotlib=3.11.0
   - biopython
-  - matplotlib
