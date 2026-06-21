@@ -7,9 +7,9 @@ ref: "resources/reference/GCA_019453945.1_ASM1945394v1_genomic.fna"
 samples: "resources/samples.tsv"
 
 analysis_options:
-  skip_trimming: "False"
-  skip_fastQC: "False"
-  skip_qualimap: "False"
+  skip_trimming: False
+  skip_fastQC: False
+  skip_qualimap: False
 
 ivar_params:
   max_depth: "60000"
