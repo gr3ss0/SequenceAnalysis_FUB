@@ -11,7 +11,7 @@ rule run_raw_qc_per_file:
         extra="--quiet",
         mem_overhead_factor=0.1,
     log:
-        "logs/fastqc/raw/{sample}_{read}.log",
+        "logs/fastqc/raw/{sample}{read}.log",
     threads: 1
     resources:
         mem_mb = 1024,
@@ -47,10 +47,11 @@ rule fastp_pe:
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
 rule run_coocked_qc:
     input:
+        input:
         lambda wildcards: (
-            [f"results/trimmed/{wildcards.sample}.1.fastq"] if wildcards.read == "fq1" 
-            else [f"results/trimmed/{wildcards.sample}.2.fastq"]
-        ) if not config["analysis_options"]["skip_trimming"]==True else []
+            [] if config["analysis_options"].get("skip_trimming", False)
+            else [f"results/trimmed/{wildcards.sample}.{wildcards.read}.fastq"]
+        )
     output:
         html="results/qc/fastqc/processed/{sample}_{read}.html",
         zip="results/qc/fastqc/processed/{sample}_{read}_fastqc.zip"
@@ -92,7 +93,7 @@ rule multiqc_all:
         # Qualimap reports
         expand("results/qc/qualimap/{sample}", sample=SAMPLES.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
         # FastQC reports
-        expand("results/qc/fastqc/processed/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['fq1', 'fq2']),
+        expand("results/qc/fastqc/processed/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
         # Samtools mapping statistics
         expand("results/stats/{sample}.flagstat", sample=SAMPLES.index),
         expand("results/stats/{sample}.stats", sample=SAMPLES.index)
@@ -115,7 +116,7 @@ rule multiqc_all:
 
 rule run_raw_qc:
     input:
-        expand("results/qc/fastqc/raw/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['fq1', 'fq2'])
+        expand("results/qc/fastqc/raw/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2'])
     output:
         # Definierte Pfade relativ zum Projektverzeichnis
         report_file="results/qc/multiqc_raw.html",
