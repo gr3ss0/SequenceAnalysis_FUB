@@ -31,25 +31,6 @@ rule all:
 		"results/qc/multiqc_raw.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
 
 
-
-include: "rules/samtools.smk"
-include: "rules/qc.smk"
-include: "rules/ivar.smk"
-include: "rules/minimap.smk"
-include: "rules/variability.smk"
-include: "rules/de-novo.smk"
-
-rule aggregate_stats:
-	input:
-		list_of_stats = lambda wildcards: expand(
-					"results/stats/{sample}.stats", sample=SAMPLES.index)
-	output:
-		"results/stats/merged.tsv"
-	script:
-		"scripts/merge_stats.py"
-
-
-
 def get_map_input(wildcards):
     if config["analysis_options"].get("skip_trimming", False):
         return {
@@ -62,3 +43,25 @@ def get_map_input(wildcards):
             "r1": SAMPLES.at[wildcards.sample, 'fq1'],
             "r2": SAMPLES.at[wildcards.sample, 'fq2']
         }
+
+
+
+include: "rules/samtools.smk"
+include: "rules/qc.smk"
+include: "rules/ivar.smk"
+include: "rules/minimap.smk"
+include: "rules/variability.smk"
+include: "rules/de-novo.smk"
+include: "rules/decontamination.smk"
+
+rule aggregate_stats:
+	input:
+		list_of_stats = lambda wildcards: expand(
+					"results/stats/{sample}.stats", sample=SAMPLES.index)
+	output:
+		"results/stats/merged.tsv"
+	script:
+		"scripts/merge_stats.py"
+
+
+

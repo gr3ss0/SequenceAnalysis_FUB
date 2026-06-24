@@ -7,7 +7,7 @@ ref: "resources/reference/GCA_019453945.1_ASM1945394v1_genomic.fna"
 samples: "resources/samples.tsv"
 
 analysis_options:
-  skip_trimming: False
+  skip_trimming: True
   skip_fastQC: False
   skip_qualimap: False
 
@@ -46,3 +46,10 @@ trimmomatic_params:
 
 #this is the folder where the tar.gz contents should be extracted
 kraken2_db: "resources/kraken2_db"
+
+skip_kraken_screening: False
+skip_decontamination: False
+
+contaminants_ref:
+  homo_sapiens: "resources/reference/homo_sapiens/GCF_000001405.40_GRCh38.p14_genomic.fna"
+  metamycoplasma: "resources/reference/mycoplasma/GCF_000767725.1_ASM76772v1_genomic.fna"

@@ -46,7 +46,6 @@ rule fastp_pe:
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
 rule run_coocked_qc:
     input:
-        input:
         lambda wildcards: (
             [] if config["analysis_options"].get("skip_trimming", False)
             else [f"results/trimmed/{wildcards.sample}.{wildcards.read}.fastq"]
@@ -95,11 +94,12 @@ rule multiqc_all:
         expand("results/qc/fastqc/processed/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
         # Samtools mapping statistics
         expand("results/stats/{sample}.flagstat", sample=SAMPLES.index),
-        expand("results/stats/{sample}.stats", sample=SAMPLES.index)
+        expand("results/stats/{sample}.stats", sample=SAMPLES.index),
         
         #from here new to 5A
         expand("results/kraken2/{sample}.kraken2.report.txt", sample=SAMPLES.index), #this is the input to the multiqc_screen rule, this is always produced
-        expand("results/decontamination/{sample}_contamination.flagstat", sample=SAMPLES.index) if contamination_enabled() else [] #this is only produced in the case decontamination is enabled. This is from the rule decon_stats
+        
+        expand("results/decontamination/{sample}_contamination.flagstat", sample=SAMPLES.index) if config["skip_kraken_screening"]!=True else []
     output:
         report_file="results/qc/multiqc_all.html",
         out_dir=directory("results/qc/multiqc_all_data")

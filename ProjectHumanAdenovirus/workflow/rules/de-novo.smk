@@ -1,14 +1,3 @@
-
-rule taxonomic_screening:
-	input:
-		unpack(get_map_input),
-	output:
-
-
-	shell:
-		"k2 classify --db archaea,viral,univec --output output.txt --threads 9 --unclassified-out unclassified.fasta --classified-out 'classified.fasta' --report report.txt reads.fna"
-
-
 rule down_sample:
 	input:
 		unpack(get_map_input),
@@ -88,7 +77,6 @@ rule index_bam:
         "../envs/mapping.yaml" # Or wherever samtools is installed
     shell:
         "samtools index {input}"
-
 
 
 rule polish:
