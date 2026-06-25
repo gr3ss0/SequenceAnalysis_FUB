@@ -1,0 +1,13 @@
+samples: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/samples.tsv"
+reference: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/reference/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+annotation: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/gtf/Homo_sapiens.GRCh38.116.chr.gtf"
+
+analysis_options:
+  skip_trimming: False
+  skip_qualimap: False
+  precomputed_ref_index: "resources/star_genome"
+
+bowtie2_params:
+  ref_index_dir: "/resources/ref_index"
+
+

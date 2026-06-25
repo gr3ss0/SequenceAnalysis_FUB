@@ -1,5 +1,22 @@
+import os
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+SAMPLES = pd.read_csv(config["samples"], index_col="sample", sep='\t')
+print(SAMPLES.index)
+REF_BASENAME = "reference"
+
+include: "rules/qc.smk"
+include: "rules/trimming.smk"
+include: "rules/star.smk"
+include: "rules/feature_counts.smk"
 
 
 rule all:
     input:
-        
+        expand("results/star/pe/{sample}/pe_aligned.sam", sample=SAMPLES.index),
+        expand("results/featureCounts/{sample}.featureCounts", sample=SAMPLES.index)
+
+
+
