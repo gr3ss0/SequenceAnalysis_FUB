@@ -1,9 +1,9 @@
 configfile: "config/config.yaml"
 
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
-rule run_raw_qc_per_file:
+rule raw_qc_per_read:
     input:
-        lambda wildcards: SAMPLES.at[wildcards.sample, wildcards.read]
+        lambda wildcards: SAMPLES.loc[wildcards.sample, f"fq{wildcards.read}"]
     output:
         html="results/qc/fastqc/raw/{sample}_{read}.html",
         zip="results/qc/fastqc/raw/{sample}_{read}_fastqc.zip"
@@ -18,14 +18,32 @@ rule run_raw_qc_per_file:
     wrapper:
         "v7.6.0/bio/fastqc"
 
-
+rule run_raw_qc:
+    input:
+        expand("results/qc/fastqc/raw/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2'])
+    output:
+        # Definierte Pfade relativ zum Projektverzeichnis
+        report_file="results/qc/multiqc_raw.html",
+        out_dir=directory("results/qc/multiqc_raw_data") 
+    log:
+        "logs/multiqc/raw.log"
+    conda:
+        "../envs/qc.yaml"
+    shell:
+        """
+        multiqc {input} \
+            --filename multiqc_raw.html \
+            --outdir results/qc \
+            > {log} 2>&1
+        """
+    
 
 # https://snakemake-wrappers.readthedocs.io/en/stable/wrappers/bio/fastqc.html
 rule run_coocked_qc:
     input:
         lambda wildcards: (
             [] if config["analysis_options"].get("skip_trimming", False)
-            else [f"results/trimmed/{wildcards.sample}.{wildcards.read}.fastq"]
+            else [f"results/trimmed/{wildcards.sample}.{wildcards.read}.fastq.gz"]
         )
     output:
         html="results/qc/fastqc/processed/{sample}_{read}.html",
@@ -41,72 +59,30 @@ rule run_coocked_qc:
     wrapper:
         "v7.6.0/bio/fastqc"
 
-
 rule qualimap:
     input:
-        # fails if not sorted
-        bam="results/bam_sorted/{sample}_sorted.bam",
-        bai="results/bam_sorted/{sample}_sorted.bam.bai"
+        # sorted by name (see samtools::sort_by_name)
+        bam="results/star/pe/{sample}/{sample}_aligned.sorted.bam", 
+        annotation=config["annotation"],
     output:
-        directory("results/qc/qualimap/{sample}")
+        directory("results/qc/qualimap/{sample}"),
     log:
         "logs/qualimap/bamqc/{sample}.log",
     conda:
-        "../envs/mapping.yaml"
-    threads: 4
+        "../envs/qc.yaml"
+    threads: 1
+    resources:
+        mem_mb=14000 
     shell:
         """
-        qualimap bamqc -nt {threads} \
+        qualimap rnaseq \
         -bam {input.bam} \
+        -gtf {input.annotation} \
         -outdir {output} \
+        --paired \
+        --sorted \
+        --java-mem-size=12G \
         > {log} 2>&1
         """
 
 
-rule multiqc_all:
-    input:
-        # Qualimap reports
-        expand("results/qc/qualimap/{sample}", sample=SAMPLES.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
-        # FastQC reports
-        expand("results/qc/fastqc/processed/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
-        # Samtools mapping statistics
-        expand("results/stats/{sample}.flagstat", sample=SAMPLES.index),
-        expand("results/stats/{sample}.stats", sample=SAMPLES.index),
-        
-       
-    output:
-        report_file="results/qc/multiqc_all.html",
-        out_dir=directory("results/qc/multiqc_all_data")
-
-    log:
-        "logs/multiqc/all.log"
-    conda:
-        "../envs/mapping.yaml"
-    shell:
-        """
-        multiqc {input} \
-            --filename multiqc_all.html \
-            --outdir results/qc \
-            > {log} 2>&1
-        """
-
-
-rule run_raw_qc:
-    input:
-        expand("results/qc/fastqc/raw/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2'])
-    output:
-        # Definierte Pfade relativ zum Projektverzeichnis
-        report_file="results/qc/multiqc_raw.html",
-        out_dir=directory("results/qc/multiqc_raw_data") 
-    log:
-        "logs/multiqc/raw.log"
-    conda:
-        "../envs/mapping.yaml"
-    shell:
-        """
-        multiqc {input} \
-            --filename multiqc_raw.html \
-            --outdir results/qc \
-            > {log} 2>&1
-        """
-    
