@@ -11,12 +11,37 @@ include: "rules/qc.smk"
 include: "rules/trimming.smk"
 include: "rules/star.smk"
 include: "rules/feature_counts.smk"
-
+include: "rules/samtools.smk"
 
 rule all:
     input:
-        expand("results/star/pe/{sample}/pe_aligned.sam", sample=SAMPLES.index),
-        expand("results/featureCounts/{sample}.featureCounts", sample=SAMPLES.index)
+        expand("results/star/pe/{sample}/{sample}_aligned.bam", sample=SAMPLES.index),
+        expand("results/featureCounts/{sample}.featureCounts", sample=SAMPLES.index),
+        
+        "results/qc/multiqc_all.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+		
+rule multiqc_all:
+    input:
+        # FastQC reports
+        expand("results/qc/fastqc/raw/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
+        expand("results/qc/fastqc/processed/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
+        
+        # Qualimap reports
+        expand("results/qc/qualimap/{sample}", sample=SAMPLES.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
+        
+    output:
+        report_file="results/qc/multiqc_all.html",
+        out_dir=directory("results/qc/multiqc_all_data")
 
-
+    log:
+        "logs/multiqc/all.log"
+    conda:
+        "envs/qc.yaml"
+    shell:
+        """
+        multiqc {input} \
+            --filename multiqc_all.html \
+            --outdir results/qc \
+            > {log} 2>&1
+        """
 
