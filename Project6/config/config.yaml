@@ -5,6 +5,7 @@ annotation: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/gtf/H
 analysis_options:
   skip_trimming: False
   skip_qualimap: False
+  skip_fastQC: False
   precomputed_ref_index: "resources/star_genome"
 
 bowtie2_params:
