@@ -1,0 +1,6 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - multiqc=1.35
+  - qualimap=2.3
