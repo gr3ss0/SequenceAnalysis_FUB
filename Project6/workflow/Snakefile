@@ -12,13 +12,16 @@ include: "rules/trimming.smk"
 include: "rules/star.smk"
 include: "rules/feature_counts.smk"
 include: "rules/samtools.smk"
+include: "rules/variability.smk"
 
 rule all:
     input:
         expand("results/star/pe/{sample}/{sample}_aligned.bam", sample=SAMPLES.index),
-        expand("results/featureCounts/{sample}.featureCounts", sample=SAMPLES.index),
+        "results/featureCounts/all.featureCounts",
+        "results/plots/top_variable_genes_heatmap.pdf",
         
         "results/qc/multiqc_all.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+        
 		
 rule multiqc_all:
     input:
