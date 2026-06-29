@@ -1,6 +1,8 @@
-samples: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/samples.tsv"
-reference: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/reference/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
-annotation: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/gtf/Homo_sapiens.GRCh38.116.chr.gtf"
+samples: "resources/samples.tsv"
+reference: "/mnt/data/home/migrke113/ProjectBenedict/SequenceAnalysis_FUB/Project6/resources/ref/chr22_with_ERCC92.fa"
+annotation: "/mnt/data/home/migrke113/ProjectBenedict/SequenceAnalysis_FUB/Project6/resources/ref/chr22_with_ERCC92.gtf"
+top_n_variable: 10
+
 
 analysis_options:
   skip_trimming: False
