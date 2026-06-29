@@ -1,7 +1,7 @@
 
 rule sort_by_name:
     input:
-        "results/star/pe/{sample}/pe_aligned.bam",
+        "results/star/pe/{sample}/{sample}_aligned.bam",
     output:
         "results/star/pe/{sample}/{sample}_aligned.sorted.bam"
     threads:8
