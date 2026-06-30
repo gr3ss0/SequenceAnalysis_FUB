@@ -13,6 +13,7 @@ include: "rules/star.smk"
 include: "rules/feature_counts.smk"
 include: "rules/samtools.smk"
 include: "rules/variability.smk"
+include: "rules/denovo.smk"
 
 rule all:
     input:
@@ -21,6 +22,8 @@ rule all:
         "results/plots/top_variable_genes_heatmap.pdf",
         
         "results/qc/multiqc_all.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
+
+        directory("results/trinity_out_dir/"),
         
 		
 rule multiqc_all:

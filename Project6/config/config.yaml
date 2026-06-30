@@ -4,7 +4,9 @@ annotation: "/mnt/data/home/migrke113/ProjectBenedict/SequenceAnalysis_FUB/Proje
 top_n_variable: 10
 
 
+
 analysis_options:
+  denovo: True
   skip_trimming: False
   skip_qualimap: False
   skip_fastQC: False
@@ -14,3 +16,10 @@ bowtie2_params:
   ref_index_dir: "/resources/ref_index"
 
 
+default-resources:
+  slurm_partition: "cpu_standard" # Fallback for other rules
+
+set-resources:
+  trinity_rna_seq:
+    slurm_partition: "cpu_short"
+    runtime: "04:00:00"

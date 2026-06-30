@@ -2,8 +2,8 @@
 rule fastp_pe:
     input:
         sample = lambda wildcards: [
-            SAMPLES.loc[wildcards.sample, 'fq1'],
-            SAMPLES.loc[wildcards.sample, 'fq2']
+            SAMPLES.at[wildcards.sample, 'fq1'],
+            SAMPLES.at[wildcards.sample, 'fq2']
         ]
     output:
         trimmed=[
