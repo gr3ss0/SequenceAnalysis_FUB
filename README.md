@@ -15,6 +15,8 @@
   - deal with naming, ?extract from the header
 - provide default config and **default sample sheet**
 - balance simplicity of workflow with useability
+- **decontamination**: to get rid of thrash data before running trinity
+  - do twice: before and ater: to get rid of contaminants before and then check whole contigs 
 
 ### Project plan
 - screen assignment 4 and 5 and think what makes sense to include
