@@ -1,0 +1,10 @@
+# Sheet with .FASTQ paths
+samples_short_read:
+samples_long_read:
+
+
+integrate_short_reads: True
+include_genome:"path/to/outgroup/genome"
+search_for_atibiotic_resistence: True
+protein_sequences: "path/to/fasta/file"
+

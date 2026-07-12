@@ -1,0 +1,27 @@
+
+
+SAMPLES = []
+PROTEINS = []
+
+
+rule all:
+    # de novo assembled and annotated genome for each sample. At least prediction of protein coding genes
+    expand("results/denovo/{sample}/genome", sample=SAMPLES),
+    expand("results/denovo/{sample}/annotation.gtf", sample=SAMPLES),
+    # established metrics
+    expand("results/denovo/{sample}/contiguity", sample=SAMPLES),
+    expand("results/denovo/{sample}/completness", sample=SAMPLES),
+    # core genome
+    "results/denovo/core_genome/genome",
+    "results/denovo/core_genome/phylo-tree",
+
+    # antibiotic resistance
+    expand("results/card/{sample}", sample=SAMPLES),
+    "results/card/overview",
+
+    # QC
+
+    # Protein sequences
+    expand("results/proteins/{protein}/orthologs", protein=PROTEINS),
+    expand("results/proteins/{protein}/msa", protein=PROTEINS),
+    expand("results/proteins/{protein}/phylo-tree", protein=PROTEINS),
