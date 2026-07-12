@@ -22,15 +22,15 @@ rule trinity:
         right=rules.merge_samples.output.right,
     output:
         dir=temp(directory("results/trinity_out_dir/")),
-        fas="results/trinity_out_dir/assembly.fasta",
-        map="results/trinity_out_dir/gene_trans_map",
+        fas="results/trinity_out_dir.Trinity.fasta",
+        map="results/trinity_out_dir.Trinity.fasta.gene_trans_map",
     log:
         'logs/trinity/trinity.log',
     params:
         extra="",
-    threads: 8
+    threads: 50
     resources:
-        mem_gb=10,
+        mem_gb=80,
     wrapper:
         "v4.1.0/bio/trinity"
 

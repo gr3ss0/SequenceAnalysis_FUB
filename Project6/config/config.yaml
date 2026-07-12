@@ -1,7 +1,7 @@
 samples: "resources/samples.tsv"
-reference: "/mnt/data/home/migrke113/ProjectBenedict/SequenceAnalysis_FUB/Project6/resources/ref/chr22_with_ERCC92.fa"
-annotation: "/mnt/data/home/migrke113/ProjectBenedict/SequenceAnalysis_FUB/Project6/resources/ref/chr22_with_ERCC92.gtf"
-top_n_variable: 10
+reference: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/reference/chr22_with_ERCC92.fa"
+annotation: "/storage/mi/michag01/SequenceAnalysis_SS26/Project6/resources/gtf/chr22_with_ERCC92.gtf"
+top_n_variable: 20
 
 
 

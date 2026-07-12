@@ -7,6 +7,8 @@ SAMPLES = pd.read_csv(config["samples"], index_col="sample", sep='\t')
 print(SAMPLES.index)
 REF_BASENAME = "reference"
 
+
+include: "rules/common.smk"
 include: "rules/qc.smk"
 include: "rules/trimming.smk"
 include: "rules/star.smk"
@@ -14,6 +16,8 @@ include: "rules/feature_counts.smk"
 include: "rules/samtools.smk"
 include: "rules/variability.smk"
 include: "rules/denovo.smk"
+include: "rules/kallisto.smk"
+include: "rules/rsem.smk"
 
 rule all:
     input:
@@ -23,9 +27,12 @@ rule all:
         
         "results/qc/multiqc_all.html" if not config["analysis_options"]["skip_fastQC"]==True else [],
 
-        directory("results/trinity_out_dir/"),
-        
-		
+        # DENOVO ASSEMBLY
+        "results/trinity_out_dir/",
+        # Transcript quantification
+        expand("results/kallisto/quant_{sample}/", sample=SAMPLES.index),
+        "results/rsem/all.results",
+
 rule multiqc_all:
     input:
         # FastQC reports
@@ -34,7 +41,11 @@ rule multiqc_all:
         
         # Qualimap reports
         expand("results/qc/qualimap/{sample}", sample=SAMPLES.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
-        
+
+        # STAR logs
+        expand("logs/pe/{sample}/Log.out", sample=SAMPLES.index) if config["analysis_options"]["denovo"]==True else [],
+        # FeatureCounts logs
+        "results/featureCounts/all.featureCounts.summary" if config["analysis_options"]["denovo"]==True else [],
     output:
         report_file="results/qc/multiqc_all.html",
         out_dir=directory("results/qc/multiqc_all_data")
