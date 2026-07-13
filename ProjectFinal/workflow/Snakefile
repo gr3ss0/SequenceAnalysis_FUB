@@ -1,27 +1,35 @@
+import os
+import pandas as pd
 
-
-SAMPLES = []
+configfile: "config/config.yaml"
+SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
+SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
 PROTEINS = []
 
+include: "rules/common.smk"
+include: "rules/trimming.smk"
+include: "rules/process_samples.smk"
+include: "rules/decontamination.smk"
 
 rule all:
-    # de novo assembled and annotated genome for each sample. At least prediction of protein coding genes
-    expand("results/denovo/{sample}/genome", sample=SAMPLES),
-    expand("results/denovo/{sample}/annotation.gtf", sample=SAMPLES),
-    # established metrics
-    expand("results/denovo/{sample}/contiguity", sample=SAMPLES),
-    expand("results/denovo/{sample}/completness", sample=SAMPLES),
-    # core genome
-    "results/denovo/core_genome/genome",
-    "results/denovo/core_genome/phylo-tree",
+	input:
+		# de novo assembled and annotated genome for each sample. At least prediction of protein coding genes
+		expand("results/denovo/{sample}/genome", sample=SAMPLES_SHORT.index),
+		expand("results/denovo/{sample}/annotation.gtf", sample=SAMPLES_SHORT.index),
+		# established metrics
+		expand("results/denovo/{sample}/contiguity", sample=SAMPLES_SHORT.index),
+		expand("results/denovo/{sample}/completness", sample=SAMPLES_SHORT.index),
+		# core genome
+		"results/denovo/core_genome/genome",
+		"results/denovo/core_genome/phylo-tree",
 
-    # antibiotic resistance
-    expand("results/card/{sample}", sample=SAMPLES),
-    "results/card/overview",
+		# antibiotic resistance
+		expand("results/card/{sample}", sample=SAMPLES_SHORT.index),
+		"results/card/overview",
 
-    # QC
+		# QC
 
-    # Protein sequences
-    expand("results/proteins/{protein}/orthologs", protein=PROTEINS),
-    expand("results/proteins/{protein}/msa", protein=PROTEINS),
-    expand("results/proteins/{protein}/phylo-tree", protein=PROTEINS),
+		# Protein sequences
+		expand("results/proteins/{protein}/orthologs", protein=PROTEINS),
+		expand("results/proteins/{protein}/msa", protein=PROTEINS),
+		expand("results/proteins/{protein}/phylo-tree", protein=PROTEINS),

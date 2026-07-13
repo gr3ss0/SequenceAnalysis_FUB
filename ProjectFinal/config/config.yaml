@@ -1,10 +1,15 @@
 # Sheet with .FASTQ paths
-samples_short_read:
-samples_long_read:
+samples_short_read: "config/samples_short.tsv"
+samples_long_read: "config/samples_long.tsv"
+kraken2_db: "/storage/mi/michag01/SequenceAnalysis_SS26/ProjectHumanAdenovirus/resources/kraken2_db"
 
+analysis_options:
+ skip_trimming: False
+ skip_qualimap: False
+ skip_kraken_screening: False
+ integrate_short_reads: True
+ include_genome: "path/to/outgroup/genome"
+ search_for_atibiotic_resistence: True
 
-integrate_short_reads: True
-include_genome:"path/to/outgroup/genome"
-search_for_atibiotic_resistence: True
 protein_sequences: "path/to/fasta/file"
 
