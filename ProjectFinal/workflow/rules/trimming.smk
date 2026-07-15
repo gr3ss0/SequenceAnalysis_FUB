@@ -1,5 +1,5 @@
 # https://snakemake-wrappers.readthedocs.io/en/v7.8.0/wrappers/bio/fastp.html
-rule fastp_short:
+rule fastp_trim_short:
     input:
         sample = lambda wildcards: [
             SAMPLES_SHORT.at[wildcards.sample, 'fq1'],
@@ -31,7 +31,7 @@ rule trim_all:
         expand("results/trimmed/long/{sample}.fastq.gz", sample=SAMPLES_LONG.index) if len(config["samples_long_read"])>0 else [],
 
 
-rule fastplong_preprocessing:
+rule fastplong_trim_long:
     input:
         fq = lambda wildcards: SAMPLES_LONG.at[wildcards.sample, "fq"]
     output:

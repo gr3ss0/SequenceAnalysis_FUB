@@ -4,32 +4,45 @@ import pandas as pd
 configfile: "config/config.yaml"
 SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
 SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
-PROTEINS = []
+PROTEINS = pd.DataFrame(
+    index=["amr_gene_A", "kinase_B"]
+)
 
 include: "rules/common.smk"
 include: "rules/trimming.smk"
-include: "rules/process_samples.smk"
+include: "rules/qc.smk"
 include: "rules/decontamination.smk"
+include: "rules/assembly.smk"
+include: "rules/annotation.smk"
+include: "rules/protein_phylogeny.smk"
+include: "rules/resistance_prediciton.smk"
 
 rule all:
 	input:
 		# de novo assembled and annotated genome for each sample. At least prediction of protein coding genes
-		expand("results/denovo/{sample}/genome", sample=SAMPLES_SHORT.index),
-		expand("results/denovo/{sample}/annotation.gtf", sample=SAMPLES_SHORT.index),
+		#expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES_SHORT.index),
+		expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index),
 		# established metrics
-		expand("results/denovo/{sample}/contiguity", sample=SAMPLES_SHORT.index),
-		expand("results/denovo/{sample}/completness", sample=SAMPLES_SHORT.index),
+		#expand("results/assembly/{sample}/contiguity/", sample=SAMPLES_SHORT.index),
+		#expand("results/denovo/{sample}/completness", sample=SAMPLES_SHORT.index),
 		# core genome
-		"results/denovo/core_genome/genome",
-		"results/denovo/core_genome/phylo-tree",
+		#"results/annotation/core/core_gene_alignment.aln",
+		"results/phylo_tree/core_genome_tree.png",
 
 		# antibiotic resistance
-		expand("results/card/{sample}", sample=SAMPLES_SHORT.index),
-		"results/card/overview",
+		# expand("results/card/{sample}", sample=SAMPLES_SHORT.index),
+		# "results/card/overview",
 
 		# QC
 
 		# Protein sequences
-		expand("results/proteins/{protein}/orthologs", protein=PROTEINS),
-		expand("results/proteins/{protein}/msa", protein=PROTEINS),
-		expand("results/proteins/{protein}/phylo-tree", protein=PROTEINS),
+		# expand("results/proteins/{protein}/orthologs", protein=PROTEINS),
+		# expand("results/proteins/{protein}/msa", protein=PROTEINS),
+		# expand("results/proteins/{protein}/phylo-tree", protein=PROTEINS),
+
+		# AMR
+		"results/card_amr_report/amr_merged.xlsx",
+
+		# Protein Phylogeny
+		expand("results/targeted_phylogeny/{protein}/gene_tree.treefile", protein=PROTEINS.index),
+

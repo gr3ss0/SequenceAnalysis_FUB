@@ -18,4 +18,13 @@ def get_map_input_long(wildcards):
     else:
         # Updated to point to fastp's compressed outputs
         return f"results/trimmed/long/{wildcards.sample}.fastq.gz"
-            
+
+def get_annotation_inputs(wildcards):
+    # 1. Get your local samples
+    gff_inputs = expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index)
+    
+    # 2. Append the static external path if it exists in config
+    if "external_genome" in config and len(config["external_genome"]) > 0:
+        gff_inputs.append("results/annotation_ext/external_genome/external_genome.gff")
+        
+    return gff_inputs
