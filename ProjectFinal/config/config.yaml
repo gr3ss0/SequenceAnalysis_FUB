@@ -2,13 +2,18 @@
 samples_short_read: "config/samples_short.tsv"
 samples_long_read: "config/samples_long.tsv"
 kraken2_db: "/storage/mi/michag01/SequenceAnalysis_SS26/ProjectHumanAdenovirus/resources/kraken2_db"
+external_genome: [] #"/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/ncbi_dataset/data/GCF_000005845.2/GCF_000005845.2_ASM584v2_genomic.fna"
+
+card_db: "resources/card_db"
+card_version: "4.0.1"  # Pin the exact version for scientific reproducibility
+
+protien_sequences: "resources/proteins.faa"
 
 analysis_options:
  skip_trimming: False
  skip_qualimap: False
  skip_kraken_screening: False
  integrate_short_reads: True
- include_genome: "path/to/outgroup/genome"
  search_for_atibiotic_resistence: True
 
 protein_sequences: "path/to/fasta/file"
