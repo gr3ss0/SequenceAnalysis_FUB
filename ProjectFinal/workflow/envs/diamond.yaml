@@ -1,0 +1,7 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - diamond=2.2.4
+  - biopython=1.87
+  - mafft=7.526 

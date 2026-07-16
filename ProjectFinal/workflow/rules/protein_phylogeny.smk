@@ -1,77 +1,96 @@
 import glob
+DIAMOND_DB_FILE = config["diamond_db"]
+QUERY_FILE=config["protien_sequences"]
 
-# # Check if the user defined a directory of query proteins in the config
-# PROTEIN_DIR = config.get("optional_protein_dir", "")
-
-# if PROTEIN_DIR and os.path.exists(PROTEIN_DIR):
-#     # Capture all protein names (e.g., "pi")
-#     QUERY_PROTEINS = [os.path.splitext(os.path.basename(f))[0] for f in glob.glob(f"{PROTEIN_DIR}/*.fasta")]
-# else:
-#     QUERY_PROTEINS = []
-
-rule find_orthologs:
+QUERY_PROTEINS = [line[1:].strip().split()[0] for line in open(QUERY_FILE) if line.startswith(">")]
+rule diamond_build:
     input:
-        #query = os.path.join(config["optional_protein_dir"], "{protein}.fasta"),
-        # We need the predicted proteins from all your samples
-        sample_proteins = expand("results/annotation/{sample}/{sample}.faa", sample=SAMPLES_LONG.index)
+        protein_pool="results/annotation/core/combined_protein_CDS.fasta"
     output:
-        combined_fasta = "results/targeted_phylogeny/{protein}/unaligned_hits.faa"
-    # log:
-    #     "logs/targeted_phylogeny/blast_{protein}.log"
-    # conda:
-    #     "../envs/blast.yaml" # Environment containing blast/python
-    # run:
-    #     import subprocess
-    #     from bioservices import BLAST # or use standard local blastp commands via python
-        
-    #     # Step 1: Create a local BLAST database of all sample proteins combined
-    #     # Step 2: BLAST the single query against it
-    #     # Step 3: Parse the top hit per sample and write them plus the query to combined_fasta
-    #     # (Alternatively, you can loop a local blastp command over your sample files)
-        
-    #     with open(output.combined_fasta, "w") as out_f:
-    #         # First, write the original query protein pi into the file
-    #         with open(input.query) as q_f:
-    #             out_f.write(q_f.read() + "\n")
-                
-    #         # Loop through each sample, blast, and grab the best hit
-    #         for sample_faa in input.sample_proteins:
-    #             # Local command line call to blastp to grab the top hit
-    #             # Append that sequence text straight to output.combined_fasta
-    #             pass
+        db="DIAMOND_DB_FILE"+".dmb",
+    conda:
+        "../envs/diamond.yaml"
+    log:
+        "logs/prot_phylogeny/build.log"
+    threads: 16
+    shell:
+        "diamond makedb --in {input.protein_pool} -d {output.db_file} > {log} 2>&1"
 
-rule align_protein:
+
+rule diamond_find_align_orthologs:
     input:
-        fasta = "results/targeted_phylogeny/{protein}/unaligned_hits.faa"
+        db_instance = DIAMOND_DB_FILE,
+        POI="results/protein_queries/{protein}.faa",
+        sample_proteins = expand("results/annotation/{protein}/{protein}.faa", sample=SAMPLES_LONG.index),
     output:
-        alignment = "results/targeted_phylogeny/{protein}/alignment.aln"
-    # log:
-    #     "logs/targeted_phylogeny/mafft_{protein}.log"
-    # threads: 2
-    # conda:
-    #     "../envs/mafft.yaml"
-    # shell:
-    #     "mafft --thread {threads} --auto {input.fasta} > {output.alignment} 2> {log}"
+        alignment= "results/protein_queries/alignment.tsv"
+    log:
+        "logs/prot_phylogeny/blast_{protein}.log"
+    conda:
+        "../envs/diamond.yaml" # Environment containing blast/python
+    threads: 32
+    params:
+        format = "--outfmt 6 qseqid sseqid pident",
+        queries=QUERY_FILE
+    shell:
+        "diamond blastp -d {input.db_instance} -q {params.queries} -o {output.alignment} {params.format}"
+
+checkpoint extract_homologs:
+    input:
+        tsv = rules.diamond_find_align_orthologs.output.alignment,
+        protein_pool=rules.diamond_build.input.protein_pool,
+    output:
+        splitted=directory("results/protein_queries/fasta"),
+    params:
+        threshold = "50"
+    run:
+        "../scripts/extract_homologs.py"
+
+rule mafft_msa:
+    input:
+        homos = "results/protein_queries/fasta/{query}.fasta"
+    output:
+        msa =  "results/protein_queries/fasta/{query}.aln"
+    log:
+        "logs/prot_phylogeny/mafft_{protein}.log"
+    threads: 2
+    conda:
+        "../envs/diamond.yaml"
+    shell:
+        "mafft --thread {threads} --auto {input.homos} > {output.msa} 2> {log}"
+
 
 rule tree_per_protein:
     input:
-        alignment = "results/targeted_phylogeny/{protein}/alignment.aln"
+        alignment = rules.mafft_msa.output.msa,
     output:
-        tree = "results/targeted_phylogeny/{protein}/gene_tree.treefile"
-    # log:
-    #     "logs/targeted_phylogeny/iqtree_{protein}.log"
-    # threads: 4
-    # params:
-    #     prefix = "results/targeted_phylogeny/{protein}/gene_tree"
-    # conda:
-    #     "../envs/iqtree.yaml"
-    # shell:
-    #     """
-    #     iqtree \
-    #         -s {input.alignment} \
-    #         -pre {params.prefix} \
-    #         -m MFP \
-    #         -nt {threads} \
-    #         -bb 1000 \
-    #         > {log} 2>&1
-    #     """
+        out_dir = directory("results/protein_queries/trees/{query}")
+    log:
+        "logs/prot_phylogeny/iqtree_{query}.log"
+    threads: 4
+    params:
+        prefix = "{output.out_dir}/{query}"
+    conda:
+        "../envs/iqtree.yaml"
+    shell:
+        """
+        iqtree \
+            -s {input.alignment} \
+            -pre {params.prefix} \
+            -nt {threads} \
+            > {log} 2>&1
+        """
+
+rule visualize_tree:
+    input:
+        "results/protein_queries/trees/{query}/{query}.treefile"
+    output:
+        "results/protein_queries/trees/{query}/{query}.png"
+    conda:
+        "../envs/phylo.yaml"
+    script:
+        "../scripts/visualize_tree.py"
+
+rule run_prot_module:
+    input:
+        expand("results/protein_queries/trees/{query}/{query}.png", query=QUERY_PROTEINS),
