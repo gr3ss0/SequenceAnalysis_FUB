@@ -84,7 +84,7 @@ rule core_genome_tree_plot:
 	output:
 		"results/phylo_tree/core_genome_tree.png"
 	log:
-		"logs/"
+        "logs/prot_phylogeny/plot_tree.log"
 	conda:
 		"../envs/phylo.yaml"
 	script:

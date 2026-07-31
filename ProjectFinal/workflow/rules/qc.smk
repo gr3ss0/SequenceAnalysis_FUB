@@ -73,7 +73,7 @@ rule processed_qc_long:
     wrapper:
         "v7.6.0/bio/fastqc"
 
-rule qualimap_polish_map:
+rule qualimap:
     input:
         # fails if not sorted
         bam="results/assembly/polish/{sample}/recombined_paired_{step}.bam.sorted",
@@ -93,25 +93,6 @@ rule qualimap_polish_map:
         > {log} 2>&1
         """
 
-# rule qualimap_polish_filter:
-#     input:
-#         # fails if not sorted
-#         bam="results/assembly/polish/{sample}/recombined_paired_filtered.bam.sorted",
-#         bai="results/assembly/polish/{sample}/recombined_paired_filtered.bam.sorted.bai"
-#     output:
-#         directory("results/qc/qualimap/filter/{sample}")
-#     log:
-#         "logs/qualimap/bamqc/{sample}.log",
-#     conda:
-#         "../envs/qc.yaml"
-#     threads: 4
-#     shell:
-#         """
-#         qualimap bamqc -nt {threads} \
-#         -bam {input.bam} \
-#         -outdir {output} \
-#         > {log} 2>&1
-#         """
 
 rule multiqc_all:
     input:

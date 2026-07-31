@@ -91,6 +91,6 @@ rule quast:
     threads: 16
     conda:
         "../envs/polypolish.yaml"
-    run:
+    shell:
         # TODO add --sam option
-        "quast.py {input.contig} -o {output.out_dir} --threads {threads}"
+        "quast.py {input.contig} -o {output.out_dir} --threads {threads} > {log} 2>&1"

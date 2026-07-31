@@ -54,6 +54,8 @@ rule merge_amr:
         reports = expand("results/card_amr_report/{sample}/card_amr_report.txt", sample=SAMPLES.index)
     output:
         xlsx = "results/card_amr_report/amr_merged.xlsx"
+    log:
+        "logs/merge_amr.log"
     conda:
         "../envs/openpyxl.yaml" # Ensure pandas and openpyxl are in this env
     script:

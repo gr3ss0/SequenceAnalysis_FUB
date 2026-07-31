@@ -61,7 +61,7 @@ rule diamond_find_align_orthologs:
         format = "--outfmt 6 qseqid sseqid pident",
         db_prefix = rules.diamond_build.params.db_prefix
     shell:
-        "diamond blastp -d {params.db_prefix} -q {input.queries} -o {output.alignment} {params.format}"
+        "diamond blastp --threads {threads} -d {params.db_prefix} -q {input.queries} -o {output.alignment} {params.format} > {log} 2>&1"
 
 rule ortholog_search_all:
     input:
@@ -134,6 +134,8 @@ rule visualize_tree:
         "results/protein_queries/trees/{query}.treefile"
     output:
         "results/protein_queries/trees/{query}.png"
+    log:
+        "logs/prot_phylogeny/plot_tree.log"
     conda:
         "../envs/phylo.yaml"
     script:

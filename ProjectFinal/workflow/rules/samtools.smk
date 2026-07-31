@@ -19,6 +19,8 @@ rule recombine_and_pair:
     output:
         paired_bam = temp("results/assembly/polish/{sample}/recombined_paired_{step}.bam")
     threads: 4
+    log:
+        "logs/recombine_and_pair/{sample}_{step}.log"
     conda:
         "../envs/assembly.yaml"
     shell:
@@ -28,36 +30,16 @@ rule recombine_and_pair:
         TMP2="{output.paired_bam}.tmp2.bam"
 
         # 1. Sort both SAMs by read name (-n) and convert to BAM
-        samtools sort -n -@ {threads} -o "$TMP1" {input.sam1}
-        samtools sort -n -@ {threads} -o "$TMP2" {input.sam2}
+        samtools sort -n -@ {threads} -o "$TMP1" {input.sam1} >> {log} 2>&1
+        samtools sort -n -@ {threads} -o "$TMP2" {input.sam2} >> {log} 2>&1
         
         # 2. Merge them back into a single paired-end BAM file
-        samtools merge -@ {threads} -n {output.paired_bam} "$TMP1" "$TMP2"
+        samtools merge -@ {threads} -n {output.paired_bam} "$TMP1" "$TMP2" >> {log} 2>&1
         
         # 3. Clean up temporary files safely
         rm "$TMP1" "$TMP2"
         """
-# rule recombine_and_pair:
-#     input:
-#         sam1 = "results/assembly/polish/{sample}_{step}_1.sam",
-#         sam2 = "results/assembly/polish/{sample}_{step}_2.sam"
-#     output:
-#         paired_bam = temp("results/assembly/polish/{sample}/recombined_paired_{step}.bam")
-#     threads: 4
-#     conda:
-#         "../envs/assembly.yaml"
-#     shell:
-#         """
-#         # 1. Sort both SAMs by read name (-n) and convert to BAM
-#         samtools sort -n -@ {threads} -o tmp1.bam {input.sam1}
-#         samtools sort -n -@ {threads} -o tmp2.bam {input.sam2}
-        
-#         # 2. Merge them back into a single paired-end BAM file
-#         samtools merge -@ {threads} -n {output.paired_bam} tmp1.bam tmp2.bam
-        
-#         # 3. Clean up temporary files
-#         rm tmp1.bam tmp2.bam
-#         """
+
 
 rule sort:
 	input:
