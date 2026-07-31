@@ -1,58 +1,75 @@
 import glob
-DIAMOND_DB_FILE = config["diamond_db"]
+DIAMOND_DB_FILE = config["diamond_db"] + ".dmnd"
+DIAMOND_DB_PREFIX = DIAMOND_DB_FILE.replace(".dmnd", "") # Simple string manipulation
 QUERY_FILE=config["protien_sequences"]
 
-QUERY_PROTEINS = [line[1:].strip().split()[0] for line in open(QUERY_FILE) if line.startswith(">")]
+QUERY_PROTEINS = [line[1:].strip().split('|')[1] for line in open(QUERY_FILE) if line.startswith(">")]
+#print(QUERY_PROTEINS)
 rule diamond_build:
     input:
-        protein_pool="results/annotation/core/combined_protein_CDS.fasta"
+        protein_pool="results/annotation/core/combined_protein_CDS.fasta",
+        panaroo_done=rules.panaroo_core_genome.output
     output:
-        db="DIAMOND_DB_FILE"+".dmb",
+        db=DIAMOND_DB_FILE,
     conda:
         "../envs/diamond.yaml"
+    params:
+        db_prefix = DIAMOND_DB_PREFIX
     log:
         "logs/prot_phylogeny/build.log"
     threads: 16
     shell:
-        "diamond makedb --in {input.protein_pool} -d {output.db_file} > {log} 2>&1"
+        "diamond makedb --in {input.protein_pool} -d {params.db_prefix} > {log} 2>&1"
 
 
 rule diamond_find_align_orthologs:
     input:
-        db_instance = DIAMOND_DB_FILE,
-        POI="results/protein_queries/{protein}.faa",
-        sample_proteins = expand("results/annotation/{protein}/{protein}.faa", sample=SAMPLES_LONG.index),
+        db_instance = rules.diamond_build.output.db,
+        queries=QUERY_FILE,
     output:
         alignment= "results/protein_queries/alignment.tsv"
     log:
-        "logs/prot_phylogeny/blast_{protein}.log"
+        "logs/prot_phylogeny/diamond_blast.log"
     conda:
         "../envs/diamond.yaml" # Environment containing blast/python
     threads: 32
     params:
         format = "--outfmt 6 qseqid sseqid pident",
-        queries=QUERY_FILE
+        db_prefix = rules.diamond_build.params.db_prefix
     shell:
-        "diamond blastp -d {input.db_instance} -q {params.queries} -o {output.alignment} {params.format}"
+        "diamond blastp -d {params.db_prefix} -q {input.queries} -o {output.alignment} {params.format}"
 
 checkpoint extract_homologs:
     input:
         tsv = rules.diamond_find_align_orthologs.output.alignment,
         protein_pool=rules.diamond_build.input.protein_pool,
     output:
-        splitted=directory("results/protein_queries/fasta"),
+        splitted_dir=directory("results/protein_queries/fasta"),
     params:
-        threshold = "50"
-    run:
+        threshold = 50
+    conda:
+        "../envs/diamond.yaml"
+    script:
         "../scripts/extract_homologs.py"
+
+def get_identified_homologs(wildcards):
+    ck_output = checkpoints.extract_homologs.get(**wildcards).output.splitted_dir
+    queries = [
+        os.path.splitext(f)[0] 
+        for f in os.listdir(ck_output) 
+        if f.endswith(".fasta")
+    ]
+    return expand("results/protein_queries/trees/{query}.png", query=queries)
+
 
 rule mafft_msa:
     input:
-        homos = "results/protein_queries/fasta/{query}.fasta"
+        homos = "results/protein_queries/fasta/{query}.fasta",
+        conenction=get_identified_homologs
     output:
-        msa =  "results/protein_queries/fasta/{query}.aln"
+        msa =  "results/protein_queries/aln/{query}.aln"
     log:
-        "logs/prot_phylogeny/mafft_{protein}.log"
+        "logs/prot_phylogeny/mafft_{query}.log"
     threads: 2
     conda:
         "../envs/diamond.yaml"
@@ -64,14 +81,14 @@ rule tree_per_protein:
     input:
         alignment = rules.mafft_msa.output.msa,
     output:
-        out_dir = directory("results/protein_queries/trees/{query}")
+        multiext("results/protein_queries/trees/{query}", ".bionj", ".log", ".mldist", ".model.gz", ".treefile", ".iqtree", ".ckp.gz")
     log:
         "logs/prot_phylogeny/iqtree_{query}.log"
     threads: 4
     params:
-        prefix = "{output.out_dir}/{query}"
+        prefix = "results/protein_queries/trees/{query}"
     conda:
-        "../envs/iqtree.yaml"
+        "../envs/phylo.yaml"
     shell:
         """
         iqtree \
@@ -83,9 +100,9 @@ rule tree_per_protein:
 
 rule visualize_tree:
     input:
-        "results/protein_queries/trees/{query}/{query}.treefile"
+        "results/protein_queries/trees/{query}.treefile"
     output:
-        "results/protein_queries/trees/{query}/{query}.png"
+        "results/protein_queries/trees/{query}.png"
     conda:
         "../envs/phylo.yaml"
     script:
@@ -93,4 +110,4 @@ rule visualize_tree:
 
 rule run_prot_module:
     input:
-        expand("results/protein_queries/trees/{query}/{query}.png", query=QUERY_PROTEINS),
+        get_identified_homologs,

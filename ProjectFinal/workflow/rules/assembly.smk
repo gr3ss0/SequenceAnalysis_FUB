@@ -1,4 +1,4 @@
-rule long_based_assembly:
+rule flye_long_based_assembly:
     input:
         get_map_input_long
     output:
@@ -18,10 +18,10 @@ rule long_based_assembly:
         mv "{params.out_dir}/assembly.fasta" {output.assembly}
         """
 
-rule align_shorts:
+rule bwa_align_shorts:
     input:
         unpack(get_map_input_short),
-        assembly = rules.long_based_assembly.output.assembly,
+        assembly = rules.flye_long_based_assembly.output.assembly,
     output:
         index = expand("results/assembly/{{sample}}/primary_assembly.fasta.{ext}",
                ext=["amb","ann","bwt","pac","sa"]),
@@ -41,10 +41,10 @@ rule align_shorts:
         """
     
 # TODO Polypolish filter by insert size, recommended by manual: https://github.com/rrwick/Polypolish/wiki/How-to-run-Polypolish
-rule filter_by_insert_size:
+rule polypolish_filter_by_insert_size:
     input:
-        aligned1 = rules.align_shorts.output.aligned1,
-        aligned2 = rules.align_shorts.output.aligned2,
+        aligned1 = rules.bwa_align_shorts.output.aligned1,
+        aligned2 = rules.bwa_align_shorts.output.aligned2,
     output:
         filtered1 = "results/assembly/polish/{sample}_filtered_1.sam",
         filtered2 = "results/assembly/polish/{sample}_filtered_2.sam",
@@ -60,11 +60,11 @@ rule filter_by_insert_size:
         --out2 {output.filtered2} 2>{log}
         """
 
-rule short_based_polish:
+rule polypolish_short_based_polish:
     input:
-        r1 = rules.filter_by_insert_size.output.filtered1,
-        r2 = rules.filter_by_insert_size.output.filtered2,
-        primary_assembly = rules.long_based_assembly.output.assembly,
+        r1 = rules.polypolish_filter_by_insert_size.output.filtered1,
+        r2 = rules.polypolish_filter_by_insert_size.output.filtered2,
+        primary_assembly = rules.flye_long_based_assembly.output.assembly,
 
     output:
         contig = "results/assembly/{sample}/secondary_assembly.fasta",
@@ -82,7 +82,7 @@ rule get_secondary_assembly:
 
 rule quast:
     input:
-        contig=rules.short_based_polish.output.contig,
+        contig=rules.polypolish_short_based_polish.output.contig,
     output:
         html = "results/assembly/{sample}/contiguity/report.html",
         out_dir = directory("results/assembly/{sample}/contiguity"),

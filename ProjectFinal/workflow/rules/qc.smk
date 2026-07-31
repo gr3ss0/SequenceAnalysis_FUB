@@ -116,7 +116,9 @@ rule qualimap_polish_filter:
 rule multiqc_all:
     input:
         # Qualimap reports
-        expand("results/qc/qualimap/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
+        expand("results/qc/qualimap/polish/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
+        expand("results/qc/qualimap/filter/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
+        
         # FastQC reports
         expand("results/qc/fastqc/processed_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=['1', '2']),
         expand("results/qc/fastqc/processed_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index),

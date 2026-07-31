@@ -5,7 +5,7 @@ configfile: "config/config.yaml"
 SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
 SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
 PROTEINS = pd.DataFrame(
-    index=["amr_gene_A", "kinase_B"]
+	index=["amr_gene_A", "kinase_B"]
 )
 
 include: "rules/common.smk"
@@ -16,6 +16,7 @@ include: "rules/assembly.smk"
 include: "rules/annotation.smk"
 include: "rules/protein_phylogeny.smk"
 include: "rules/resistance_prediciton.smk"
+include: "rules/samtools.smk"
 
 rule all:
 	input:
@@ -34,6 +35,15 @@ rule all:
 		# "results/card/overview",
 
 		# QC
+		# --- 1. Raw QC Pipeline (FastQC Raw) ---
+		# "results/qc/multiqc_raw.html",
+
+		# # --- 2. Processed & Assembly QC Pipeline (FastQC Processed & Qualimap) ---
+		# "results/qc/multiqc_all.html",
+
+		# # --- 3. Individual Qualimap runs (if you want them explicitly evaluated) ---
+		# expand("results/qc/qualimap/polish/{sample}", sample=SAMPLES_SHORT.index),
+		# expand("results/qc/qualimap/filter/{sample}", sample=SAMPLES_SHORT.index),
 
 		# Protein sequences
 		# expand("results/proteins/{protein}/orthologs", protein=PROTEINS),
@@ -44,5 +54,5 @@ rule all:
 		"results/card_amr_report/amr_merged.xlsx",
 
 		# Protein Phylogeny
-		expand("results/targeted_phylogeny/{protein}/gene_tree.treefile", protein=PROTEINS.index),
+		expand("results/protein_queries/trees/{query}.treefile", query=QUERY_PROTEINS)
 
