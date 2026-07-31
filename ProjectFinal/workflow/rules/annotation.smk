@@ -53,15 +53,15 @@ rule panaroo_core_genome:
 		results=directory("results/annotation/core")
 	threads: 64
 	params:
-		mode="--alignment core",
-		treshold="--core_threshold 0.95",
-		sequence_identity="--threshold 0.98"
+		mode="core",
+		treshold=config['annotation_options']['core_consensus'],
+		sequence_identity=config['annotation_options']['aln_sequence_identity']
 	log:
 		"logs/annotation/core_genome.log"
 	conda:
 		"../envs/annotation.yaml"
 	shell:
-		"panaroo -i {input.annotations} -o {output.results} --threads {threads} {params.mode} {params.treshold} --clean-mode sensitive > {log} 2>&1"
+		"panaroo -i {input.annotations} -o {output.results} --threads {threads} --alignment {params.mode} --threshold {params.sequence_identity} --core_threshold {params.treshold} --clean-mode sensitive > {log} 2>&1"
 
 rule iqtree_phylogeny:
 	input:

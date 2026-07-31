@@ -1,35 +1,8 @@
 import glob
 
-def get_db_const(wildcards):
-    return {
-        "name":config["diamond_db"] + "{sample}.dmnd",
-        "prefix": config["diamond_db"] + "{sample}"
-    }
-
-DIAMOND_DB_FILE = config["diamond_db"] + ".dmnd"
-DIAMOND_DB_PREFIX = DIAMOND_DB_FILE.replace(".dmnd", "") # Simple string manipulation
 QUERY_FILE=config["protien_sequences"]
-
 QUERY_PROTEINS = [line[1:].strip().split('|')[1] for line in open(QUERY_FILE) if line.startswith(">")]
 #print(QUERY_PROTEINS)
-
-## deprecated
-# rule diamond_build:
-#     input:
-#         protein_pool="results/annotation/core/combined_protein_CDS.fasta",
-#         panaroo_done=rules.panaroo_core_genome.output
-#     output:
-#         db=DIAMOND_DB_FILE,
-#     conda:
-#         "../envs/diamond.yaml"
-#     params:
-#         db_prefix = DIAMOND_DB_PREFIX
-#     log:
-#         "logs/prot_phylogeny/build.log"
-#     threads: 16
-#     shell:
-#         "diamond makedb --in {input.protein_pool} -d {params.db_prefix} > {log} 2>&1"
-
 
 rule diamond_build:
     input:

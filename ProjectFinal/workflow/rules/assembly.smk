@@ -8,13 +8,14 @@ rule flye_long_based_assembly:
     log:
         "logs/flye/{sample}.log"
     params:
-        technique=config.get("flye_technique", "--pacbio-raw"),
+        technique=config['assembly_options']['long_seq_method'],
         out_dir = directory("results/assembly/{sample}"),
+        polishing_iterations = config['assembly_options']['long_polish_iterations']
     conda:
         "../envs/flye.yaml"
     shell:
         """
-        flye {params.technique} {input} --out-dir {params.out_dir} --threads {threads} > {log} 2>&1
+        flye {params.technique} {input} --iterations {params.polishing_iterations} --out-dir {params.out_dir} --threads {threads} > {log} 2>&1
         mv "{params.out_dir}/assembly.fasta" {output.assembly}
         """
 

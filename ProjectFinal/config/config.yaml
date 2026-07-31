@@ -16,6 +16,10 @@ analysis_options:
  integrate_short_reads: True
  search_for_atibiotic_resistence: True
 
-# TODO
-# polishing long reads assembly
-# ortholog search on prokka to panaroo
+assembly_options:
+  long_seq_method: "--pacbio-raw"
+  long_polish_iterations: 2
+
+annotation_options:
+  core_concensus: 0.95
+  aln_sequence_identity: 0.98
