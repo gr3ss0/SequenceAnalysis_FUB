@@ -76,12 +76,12 @@ rule processed_qc_long:
 rule qualimap_polish_map:
     input:
         # fails if not sorted
-        bam="results/assembly/polish/{sample}/recombined_paired_sorted.bam",
-        bai="results/assembly/polish/{sample}/recombined_paired_sorted.bam.bai"
+        bam="results/assembly/polish/{sample}/recombined_paired_{step}.bam.sorted",
+        bai="results/assembly/polish/{sample}/recombined_paired_{step}.bam.sorted.bai"
     output:
-        directory("results/qc/qualimap/polish/{sample}")
+        directory("results/qc/qualimap/{step}/{sample}")
     log:
-        "logs/qualimap/bamqc/{sample}.log",
+        "logs/qualimap/bamqc/{sample}_{step}.log",
     conda:
         "../envs/qc.yaml"
     threads: 4
@@ -93,31 +93,31 @@ rule qualimap_polish_map:
         > {log} 2>&1
         """
 
-rule qualimap_polish_filter:
-    input:
-        # fails if not sorted
-        bam="results/assembly/polish/{sample}/recombined_paired_filtered_sorted.bam",
-        bai="results/assembly/polish/{sample}/recombined_paired_filtered_sorted.bam.bai"
-    output:
-        directory("results/qc/qualimap/filter/{sample}")
-    log:
-        "logs/qualimap/bamqc/{sample}.log",
-    conda:
-        "../envs/qc.yaml"
-    threads: 4
-    shell:
-        """
-        qualimap bamqc -nt {threads} \
-        -bam {input.bam} \
-        -outdir {output} \
-        > {log} 2>&1
-        """
+# rule qualimap_polish_filter:
+#     input:
+#         # fails if not sorted
+#         bam="results/assembly/polish/{sample}/recombined_paired_filtered.bam.sorted",
+#         bai="results/assembly/polish/{sample}/recombined_paired_filtered.bam.sorted.bai"
+#     output:
+#         directory("results/qc/qualimap/filter/{sample}")
+#     log:
+#         "logs/qualimap/bamqc/{sample}.log",
+#     conda:
+#         "../envs/qc.yaml"
+#     threads: 4
+#     shell:
+#         """
+#         qualimap bamqc -nt {threads} \
+#         -bam {input.bam} \
+#         -outdir {output} \
+#         > {log} 2>&1
+#         """
 
 rule multiqc_all:
     input:
         # Qualimap reports
-        expand("results/qc/qualimap/polish/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
-        expand("results/qc/qualimap/filter/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
+        expand("results/qc/qualimap/aligned/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
+        expand("results/qc/qualimap/filtered/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
         
         # FastQC reports
         expand("results/qc/fastqc/processed_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=['1', '2']),

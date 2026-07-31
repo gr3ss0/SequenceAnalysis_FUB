@@ -35,15 +35,16 @@ rule all:
 		# "results/card/overview",
 
 		# QC
-		# --- 1. Raw QC Pipeline (FastQC Raw) ---
-		# "results/qc/multiqc_raw.html",
+		# rule run_raw_qc
+		"results/qc/multiqc_raw.html",
 
-		# # --- 2. Processed & Assembly QC Pipeline (FastQC Processed & Qualimap) ---
-		# "results/qc/multiqc_all.html",
+		# --- 2. Processed & Assembly QC Pipeline (FastQC Processed & Qualimap) ---
+		# rule multiqc_all
+		"results/qc/multiqc_all.html",
 
-		# # --- 3. Individual Qualimap runs (if you want them explicitly evaluated) ---
-		# expand("results/qc/qualimap/polish/{sample}", sample=SAMPLES_SHORT.index),
-		# expand("results/qc/qualimap/filter/{sample}", sample=SAMPLES_SHORT.index),
+		# --- 3. Individual Qualimap runs (if you want them explicitly evaluated) ---
+		expand("results/qc/qualimap/aligned/{sample}", sample=SAMPLES_SHORT.index),
+		expand("results/qc/qualimap/filtered/{sample}", sample=SAMPLES_SHORT.index),
 
 		# Protein sequences
 		# expand("results/proteins/{protein}/orthologs", protein=PROTEINS),
@@ -54,5 +55,5 @@ rule all:
 		"results/card_amr_report/amr_merged.xlsx",
 
 		# Protein Phylogeny
-		expand("results/protein_queries/trees/{query}.treefile", query=QUERY_PROTEINS)
+		plot_trees_for_succ_queries,
 
