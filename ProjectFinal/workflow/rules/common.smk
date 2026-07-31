@@ -1,8 +1,8 @@
 def get_map_input_short(wildcards):
     if config["analysis_options"].get("skip_trimming", True):
         return {
-            "r1": SAMPLES_SHORT.at[wildcards.sample, 'fq1'], 
-            "r2": SAMPLES_SHORT.at[wildcards.sample, 'fq2']
+            "r1": SAMPLES.at[wildcards.sample, 'short_fq1'], 
+            "r2": SAMPLES.at[wildcards.sample, 'short_fq2']
         }
     else:
         # Updated to point to fastp's compressed outputs
@@ -13,7 +13,7 @@ def get_map_input_short(wildcards):
 
 def get_map_input_long(wildcards):
     if config["analysis_options"].get("skip_trimming", True):
-        return SAMPLES_LONG.at[wildcards.sample, 'fq']
+        return SAMPLES.at[wildcards.sample, 'long_fq']
         
     else:
         # Updated to point to fastp's compressed outputs
@@ -21,7 +21,7 @@ def get_map_input_long(wildcards):
 
 def get_annotation_inputs(wildcards):
     # 1. Get your local samples
-    gff_inputs = expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index)
+    gff_inputs = expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES.index)
     
     # 2. Append the static external path if it exists in config
     if "external_genome" in config and len(config["external_genome"]) > 0:

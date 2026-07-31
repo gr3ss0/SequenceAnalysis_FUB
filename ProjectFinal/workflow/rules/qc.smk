@@ -1,6 +1,6 @@
 rule raw_qc:
     input:
-        lambda wildcards: SAMPLES_SHORT.at[wildcards.sample, f"fq{wildcards.read}"]
+        lambda wildcards: SAMPLES.at[wildcards.sample, f"short_fq{wildcards.read}"]
     output:
         html="results/qc/fastqc/raw_short/{sample}_{read}.html",
         zip="results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip"
@@ -17,7 +17,7 @@ rule raw_qc:
 
 rule raw_qc_long:
     input:
-        lambda wildcards: SAMPLES_LONG.at[wildcards.sample, "fq"]
+        lambda wildcards: SAMPLES.at[wildcards.sample, "long_fq"]
     output:
         html="results/qc/fastqc/raw_long/{sample}.html",
         zip="results/qc/fastqc/raw_long/{sample}_fastqc.zip"
@@ -116,21 +116,21 @@ rule qualimap_polish_map:
 rule multiqc_all:
     input:
         # Qualimap reports
-        expand("results/qc/qualimap/aligned/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
-        expand("results/qc/qualimap/filtered/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
+        expand("results/qc/qualimap/aligned/{sample}", sample=SAMPLES.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
+        expand("results/qc/qualimap/filtered/{sample}", sample=SAMPLES.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
         
         # FastQC reports
-        expand("results/qc/fastqc/processed_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=['1', '2']),
-        expand("results/qc/fastqc/processed_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index),
+        expand("results/qc/fastqc/processed_short/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
+        expand("results/qc/fastqc/processed_long/{sample}_fastqc.zip", sample=SAMPLES.index),
         
         # # Samtools mapping statistics
         # expand("results/stats/{sample}.flagstat", sample=SAMPLES.index),
         # expand("results/stats/{sample}.stats", sample=SAMPLES.index),
         
         #from here new to 5A
-        # expand("results/kraken2/{sample}.kraken2.report.txt", sample=SAMPLES_SHORT.index), #this is the input to the multiqc_screen rule, this is always produced
+        # expand("results/kraken2/{sample}.kraken2.report.txt", sample=SAMPLES.index), #this is the input to the multiqc_screen rule, this is always produced
         
-        # expand("results/decontamination/{sample}_contamination.flagstat", sample=SAMPLES_SHORT.index) if config["analysis_options"]["skip_kraken_screening"]!=True else []
+        # expand("results/decontamination/{sample}_contamination.flagstat", sample=SAMPLES.index) if config["analysis_options"]["skip_kraken_screening"]!=True else []
     output:
         report_file="results/qc/multiqc_all.html",
         out_dir=directory("results/qc/multiqc_all_data")
@@ -150,8 +150,8 @@ rule multiqc_all:
 
 rule run_raw_qc:
     input:
-        expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=['1', '2']),
-        expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index) if len(config["samples_long_read"])>0 else []
+        expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
+        expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES.index) if len(config["samples_long_read"])>0 else []
     output:
         # Definierte Pfade relativ zum Projektverzeichnis
         report_file="results/qc/multiqc_raw.html",

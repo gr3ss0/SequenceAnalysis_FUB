@@ -43,12 +43,12 @@ rule kraken2_long:
 
 rule screen_long:
     input:
-        expand("results/kraken2/long/{sample}.kraken2.report.txt", sample=SAMPLES_LONG.index) if len(config["samples_long_read"]) > 0 else []
+        expand("results/kraken2/long/{sample}.kraken2.report.txt", sample=SAMPLES.index) if len(config["samples_long_read"]) > 0 else []
 
 rule multiqc_screen:
     input:
-        expand("results/kraken2/long/{sample}.kraken2.report.txt", sample=SAMPLES_LONG.index) if len(config["samples_long_read"]) > 0 else [],
-        expand("results/kraken2/short/{sample}.kraken2.report.txt", sample=SAMPLES_SHORT.index),
+        expand("results/kraken2/long/{sample}.kraken2.report.txt", sample=SAMPLES.index) if len(config["samples_long_read"]) > 0 else [],
+        expand("results/kraken2/short/{sample}.kraken2.report.txt", sample=SAMPLES.index),
     output:
         report_file = "results/qc/multiqc_screen.html",
         out_dir = directory("results/qc/multiqc_screen_data")

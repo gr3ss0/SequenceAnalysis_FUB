@@ -65,13 +65,13 @@ rule diamond_find_align_orthologs:
 
 rule ortholog_search_all:
     input:
-        expand(rules.diamond_find_align_orthologs.output.alignment, sample=SAMPLES_LONG.index),
+        expand(rules.diamond_find_align_orthologs.output.alignment, sample=SAMPLES.index),
 
 # this has to be a checkpoint as we cant be sure about the result of ortholog search - a query protein can be included or not.
 checkpoint extract_homologs:
     input:
-        tsvs = expand(rules.diamond_find_align_orthologs.output.alignment, sample=SAMPLES_LONG.index),
-        protein_pools=expand(rules.diamond_build.input.protein_pool, sample=SAMPLES_LONG.index),
+        tsvs = expand(rules.diamond_find_align_orthologs.output.alignment, sample=SAMPLES.index),
+        protein_pools=expand(rules.diamond_build.input.protein_pool, sample=SAMPLES.index),
     output:
         splitted_dir=directory("results/protein_queries/fasta"),
     params:

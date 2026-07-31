@@ -2,8 +2,10 @@ import os
 import pandas as pd
 
 configfile: "config/config.yaml"
-SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
-SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
+#SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
+#SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
+SAMPLES = pd.read_csv(config["samples"], index_col="sample", sep='\t')
+
 PROTEINS = pd.DataFrame(
 	index=["amr_gene_A", "kinase_B"]
 )
@@ -22,7 +24,7 @@ rule all:
 	input:
 		# de novo assembled and annotated genome for each sample. At least prediction of protein coding genes
 		#expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES_SHORT.index),
-		expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index),
+		expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES.index),
 		# established metrics
 		#expand("results/assembly/{sample}/contiguity/", sample=SAMPLES_SHORT.index),
 		#expand("results/denovo/{sample}/completness", sample=SAMPLES_SHORT.index),
@@ -43,8 +45,8 @@ rule all:
 		"results/qc/multiqc_all.html",
 
 		# --- 3. Individual Qualimap runs (if you want them explicitly evaluated) ---
-		expand("results/qc/qualimap/aligned/{sample}", sample=SAMPLES_SHORT.index),
-		expand("results/qc/qualimap/filtered/{sample}", sample=SAMPLES_SHORT.index),
+		expand("results/qc/qualimap/aligned/{sample}", sample=SAMPLES.index),
+		expand("results/qc/qualimap/filtered/{sample}", sample=SAMPLES.index),
 
 		# Protein sequences
 		# expand("results/proteins/{protein}/orthologs", protein=PROTEINS),

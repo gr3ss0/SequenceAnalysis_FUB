@@ -51,7 +51,7 @@ rule card_amr_detection:
 
 rule merge_amr:
     input:
-        reports = expand("results/card_amr_report/{sample}/card_amr_report.txt", sample=SAMPLES_LONG.index)
+        reports = expand("results/card_amr_report/{sample}/card_amr_report.txt", sample=SAMPLES.index)
     output:
         xlsx = "results/card_amr_report/amr_merged.xlsx"
     conda:

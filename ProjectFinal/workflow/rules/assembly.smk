@@ -78,7 +78,7 @@ rule polypolish_short_based_polish:
 
 rule get_secondary_assembly:
     input:
-        expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES_LONG.index),
+        expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES.index),
 
 rule quast:
     input:

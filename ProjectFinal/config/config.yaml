@@ -1,6 +1,5 @@
 # Sheet with .FASTQ paths
-samples_short_read: "config/samples_short.tsv"
-samples_long_read: "config/samples_long.tsv"
+samples: "config/samples.tsv"
 kraken2_db: "/storage/mi/michag01/SequenceAnalysis_SS26/ProjectHumanAdenovirus/resources/kraken2_db"
 external_genome: [] #"/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/ncbi_dataset/data/GCF_000005845.2/GCF_000005845.2_ASM584v2_genomic.fna"
 
