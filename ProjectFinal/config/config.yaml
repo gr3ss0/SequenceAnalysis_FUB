@@ -1,21 +1,38 @@
-# Sheet with .FASTQ paths
-samples_short_read: "config/samples_short.tsv"
-samples_long_read: "config/samples_long.tsv"
-kraken2_db: "/storage/mi/michag01/SequenceAnalysis_SS26/ProjectHumanAdenovirus/resources/kraken2_db"
-external_genome: [] #"/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/ncbi_dataset/data/GCF_000005845.2/GCF_000005845.2_ASM584v2_genomic.fna"
-
-card_db: "resources/card_db"
-card_version: "4.0.1"  # Pin the exact version for scientific reproducibility
-
-diamond_db: "resources/diamond_db/protein_pool"
-protien_sequences: "/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/mock_protein_queries.fasta"
-
 analysis_options:
  skip_trimming: False
  skip_qualimap: False
  skip_kraken_screening: False
+ skip_decontamination: False
  integrate_short_reads: True
  search_for_atibiotic_resistence: True
 
-protein_sequences: "path/to/fasta/file"
+
+# Sheet with paths to the samples
+samples_short_read: "config/samples_short.tsv"
+samples_long_read: "config/samples_long.tsv"
+
+
+#screening + decontamination, this is optional, controlled in config analysis options
+kraken2_db: "resources/kraken2_db" #to be downloaded for the kraken2 screening
+path_to_contamination_fasta: [] #for the decontamination
+
+
+#optional and controlled from here itself
+external_genome: [] #this is the outgroup assembled genome, as a fasta file
+
+
+
+#DOWNSTREAM ANALYSIS
+
+#for the antibiotic resistance, this is optional, controlled in config analysis options
+card_db: "resources/card_db" #to be downloaded
+card_version: "4.0.1"  # Pin the exact version for scientific reproducibility
+
+#for the protein phylogeny, this is optional, controlled from here itself
+diamond_db: "resources/diamond_db/protein_pool"
+protein_sequences: [] #this is optional
+
+
+
+
 

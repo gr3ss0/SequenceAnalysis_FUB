@@ -4,9 +4,15 @@ import pandas as pd
 configfile: "config/config.yaml"
 SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
 SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
-PROTEINS = pd.DataFrame(
-    index=["amr_gene_A", "kinase_B"]
-)
+
+QUERY_FILE = config["protein_sequences"]
+
+QUERY_PROTEINS = [
+    line[1:].strip().split()[0]
+    for line in open(QUERY_FILE)
+    if line.startswith(">")
+]
+
 
 include: "rules/common.smk"
 include: "rules/trimming.smk"
@@ -43,6 +49,10 @@ rule all:
 		# AMR
 		"results/card_amr_report/amr_merged.xlsx",
 
-		# Protein Phylogeny
-		expand("results/targeted_phylogeny/{protein}/gene_tree.treefile", protein=PROTEINS.index),
+		# targeted protein phylogenies
+        expand(
+            "results/protein_queries/trees/{query}/{query}.png",
+            query=QUERY_PROTEINS
+        )
 
+		

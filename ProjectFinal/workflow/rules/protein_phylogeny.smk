@@ -1,31 +1,34 @@
-import glob
 DIAMOND_DB_FILE = config["diamond_db"]
-QUERY_FILE=config["protien_sequences"]
 
-QUERY_PROTEINS = [line[1:].strip().split()[0] for line in open(QUERY_FILE) if line.startswith(">")]
 rule diamond_build:
     input:
-        protein_pool="results/annotation/core/combined_protein_CDS.fasta"
+        protein_pool=rules.combine_prokka_proteins.output.protein_pool
     output:
-        db="DIAMOND_DB_FILE"+".dmb",
+        db_file=DIAMOND_DB_FILE + ".dmnd"
     conda:
         "../envs/diamond.yaml"
     log:
         "logs/prot_phylogeny/build.log"
+    params:
+        db=DIAMOND_DB_FILE
     threads: 16
     shell:
-        "diamond makedb --in {input.protein_pool} -d {output.db_file} > {log} 2>&1"
+    """
+    mkdir -p $(dirname {params.db})
+    diamond makedb \
+        --in {input.protein_pool} \
+        -d {params.db} \
+        > {log} 2>&1
+    """
 
 
 rule diamond_find_align_orthologs:
     input:
-        db_instance = DIAMOND_DB_FILE,
-        POI="results/protein_queries/{protein}.faa",
-        sample_proteins = expand("results/annotation/{protein}/{protein}.faa", sample=SAMPLES_LONG.index),
+        db_instance = rules.diamond_build.output.db_file
     output:
         alignment= "results/protein_queries/alignment.tsv"
     log:
-        "logs/prot_phylogeny/blast_{protein}.log"
+        "logs/prot_phylogeny/blast_protein.log"
     conda:
         "../envs/diamond.yaml" # Environment containing blast/python
     threads: 32
@@ -35,15 +38,15 @@ rule diamond_find_align_orthologs:
     shell:
         "diamond blastp -d {input.db_instance} -q {params.queries} -o {output.alignment} {params.format}"
 
-checkpoint extract_homologs:
+rule extract_homologs:
     input:
         tsv = rules.diamond_find_align_orthologs.output.alignment,
-        protein_pool=rules.diamond_build.input.protein_pool,
+        protein_pool=rules.combine_prokka_proteins.output.protein_pool
     output:
-        splitted=directory("results/protein_queries/fasta"),
+        fasta_files = expand("results/protein_queries/fasta/{query}.fasta", query=QUERY_PROTEINS),
     params:
-        threshold = "50"
-    run:
+        threshold = 50
+    script:
         "../scripts/extract_homologs.py"
 
 rule mafft_msa:
@@ -52,7 +55,7 @@ rule mafft_msa:
     output:
         msa =  "results/protein_queries/fasta/{query}.aln"
     log:
-        "logs/prot_phylogeny/mafft_{protein}.log"
+        "logs/prot_phylogeny/mafft_{query}.log"
     threads: 2
     conda:
         "../envs/diamond.yaml"
@@ -64,16 +67,18 @@ rule tree_per_protein:
     input:
         alignment = rules.mafft_msa.output.msa,
     output:
-        out_dir = directory("results/protein_queries/trees/{query}")
+        tree = "results/protein_queries/trees/{query}/{query}.treefile"
     log:
         "logs/prot_phylogeny/iqtree_{query}.log"
     threads: 4
     params:
-        prefix = "{output.out_dir}/{query}"
+        prefix=lambda wildcards: f"results/protein_queries/trees/{wildcards.query}/{wildcards.query}"
     conda:
         "../envs/iqtree.yaml"
     shell:
         """
+        mkdir -p results/protein_queries/trees/{wildcards.query}
+
         iqtree \
             -s {input.alignment} \
             -pre {params.prefix} \
@@ -83,7 +88,7 @@ rule tree_per_protein:
 
 rule visualize_tree:
     input:
-        "results/protein_queries/trees/{query}/{query}.treefile"
+        rules.tree_per_protein.output.tree
     output:
         "results/protein_queries/trees/{query}/{query}.png"
     conda:

@@ -23,7 +23,7 @@ rule set_up_card:
 
 rule card_amr_detection:
     input:
-        rules.set_up_card.output.db_instance,
+        rules.set_up_card.output.json,
         proteins = "results/annotation/{sample}/{sample}.faa",
     output:
         txt = "results/card_amr_report/{sample}/card_amr_report.txt",

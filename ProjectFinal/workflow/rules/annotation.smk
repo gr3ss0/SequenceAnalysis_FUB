@@ -21,30 +21,53 @@ rule prokka_prediction:
 			   --force \
 			   {input.assembly} > {log} 2>&1
 		"""
+if config["external_genome"]:
+	rule prokka_predict_external:
+		input:
+			assembly = config["external_genome"]
+		output:
+			out_dir = directory("results/annotation_ext/external_genome"),
+			genes = "results/annotation_ext/external_genome/external_genome.gff",
+			proteins = "results/annotation_ext/external_genome/external_genome.faa",
+			stats = "results/annotation_ext/external_genome/external_genome.txt"
+		threads: 8
+		conda:
+			"../envs/annotation.yaml"
+		log:
+			"logs/annotation/external_genome.log"
+		shell:
+			"""
+			prokka --cpus {threads} \
+				   --outdir {output.out_dir} \
+				   --prefix external_genome \
+				   --locustag EXTERNAL \
+				   --force \
+				   {input.assembly} > {log} 2>&1
+			"""
 
-rule prokka_predict_external:
-	input:
-		assembly = config["external_genome"]
-	output:
-		out_dir = directory("results/annotation_ext/external_genome"),
-		genes = "results/annotation_ext/external_genome/external_genome.gff",
-		proteins = "results/annotation_ext/external_genome/external_genome.faa",
-		stats = "results/annotation_ext/external_genome/external_genome.txt"
-	threads: 8
-	conda:
-		"../envs/annotation.yaml"
-	log:
-		"logs/annotation/external_genome.log"
+PROKKA_PROTEINS = expand(
+    "results/annotation/{sample}/{sample}.faa",
+    sample=SAMPLES_LONG.index
+)
+
+if config["external_genome"]:
+    PROKKA_PROTEINS.append(
+        "results/annotation_ext/external_genome/external_genome.faa"
+    )
+
+rule combine_prokka_proteins:
+    input:
+        proteins = PROKKA_PROTEINS
+    output:
+        protein_pool = "results/annotation/pool/combined_protein_CDS.fasta"
+    log:
+        "logs/annotation/combined_proteins.log"
 	shell:
 		"""
-		prokka --cpus {threads} \
-			   --outdir {output.out_dir} \
-			   --prefix external_genome \
-			   --locustag EXTERNAL \
-			   --force \
-			   {input.assembly} > {log} 2>&1
+		mkdir -p results/annotation/pool
+		cat {input.proteins} > {output.protein_pool}
 		"""
-	
+
 rule panaroo_core_genome:
 	input:
 		annotations = get_annotation_inputs
