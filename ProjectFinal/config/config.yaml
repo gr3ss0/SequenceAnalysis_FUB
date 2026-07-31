@@ -20,3 +20,5 @@ analysis_options:
 # TODO
 # polishing long reads assembly
 # ortholog search on prokka to panaroo
+
+# add logging where missing.
