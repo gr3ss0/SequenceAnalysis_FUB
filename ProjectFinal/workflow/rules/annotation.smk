@@ -1,6 +1,6 @@
 rule prokka_prediction:
 	input:
-		assembly = "results/assembly/{sample}/secondary_assembly.fasta"
+        assembly = f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}",
 	output:
 		# Prokka creates a GFF with FASTA appended automatically
 		out_dir = directory("results/annotation/{sample}"),

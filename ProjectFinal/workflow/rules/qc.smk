@@ -127,12 +127,12 @@ rule multiqc_all:
         ),
         *(
             expand("results/qc/qualimap/polish/{sample}", sample=SAMPLES_SHORT.index)
-            if QUALIMAP_ENABLED
+            if (QUALIMAP_ENABLED and INTEGRATE_SHORT_READS)
             else []
         ),
         *(
             expand("results/qc/qualimap/filter/{sample}", sample=SAMPLES_SHORT.index)
-            if QUALIMAP_ENABLED
+            if (QUALIMAP_ENABLED and INTEGRATE_SHORT_READS)
             else []
         )
         

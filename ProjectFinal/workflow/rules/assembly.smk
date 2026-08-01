@@ -75,13 +75,13 @@ rule short_based_polish:
     shell:
         "polypolish polish {input.primary_assembly} {input.r1} {input.r2} > {output.contig} 2>{log}"
 
-rule get_secondary_assembly:
-    input:
-        expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES_LONG.index),
+#rule get_secondary_assembly:
+    #input:
+        #expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES_LONG.index),
 
 rule quast:
     input:
-        contig=rules.short_based_polish.output.contig,
+        contig = f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}",
     output:
         html = "results/assembly/{sample}/quast/report.html",
         out_dir = directory("results/assembly/{sample}/quast"),
@@ -101,7 +101,7 @@ rule quast:
 
 rule busco:
     input:
-        contig=rules.short_based_polish.output.contig
+        contig = f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}",
 
     output:
         out_dir=directory("results/assembly/{sample}/busco")
