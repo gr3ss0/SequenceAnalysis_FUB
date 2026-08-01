@@ -28,7 +28,7 @@ rule trim_all:
     input:
         expand("results/trimmed/short/{sample}.1.fastq.gz", sample=SAMPLES.index),
         expand("results/trimmed/short/{sample}.2.fastq.gz", sample=SAMPLES.index),
-        expand("results/trimmed/long/{sample}.fastq.gz", sample=SAMPLES.index) if len(config["samples_long_read"])>0 else [],
+        expand("results/trimmed/long/{sample}.fastq.gz", sample=SAMPLES.index),
 
 
 rule fastplong_trim_long:

@@ -132,7 +132,7 @@ rule multiqc_all:
 rule run_raw_qc:
     input:
         expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
-        expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES.index) if len(config["samples_long_read"])>0 else []
+        expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES.index),
     output:
         # Definierte Pfade relativ zum Projektverzeichnis
         report_file="results/qc/multiqc_raw.html",

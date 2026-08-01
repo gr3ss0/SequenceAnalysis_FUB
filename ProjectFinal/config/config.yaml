@@ -21,5 +21,8 @@ assembly_options:
   long_polish_iterations: 2
 
 annotation_options:
-  core_concensus: 0.95
+  core_consensus: 0.95
   aln_sequence_identity: 0.98
+
+decontamination:
+  contamination_fasta: "resources/Homo_sapiens.GRCh38.dna.primary_assembly.fa"

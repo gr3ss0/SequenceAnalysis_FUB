@@ -1,6 +1,6 @@
 rule flye_long_based_assembly:
     input:
-        get_map_input_long
+        decide_contamination_long
     output:
         assembly = "results/assembly/{sample}/primary_assembly.fasta",
         #out_dir = directory("results/assembly/{sample}"),
@@ -21,7 +21,7 @@ rule flye_long_based_assembly:
 
 rule bwa_align_shorts:
     input:
-        unpack(get_map_input_short),
+        unpack(decide_contamination_short),
         assembly = rules.flye_long_based_assembly.output.assembly,
     output:
         index = expand("results/assembly/{{sample}}/primary_assembly.fasta.{ext}",
