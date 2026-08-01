@@ -96,6 +96,6 @@ rule visualize_tree:
     script:
         "../scripts/visualize_tree.py"
 
-rule run_prot_module:
-    input:
-        expand("results/protein_queries/trees/{query}/{query}.png", query=QUERY_PROTEINS),
+#rule run_prot_module:
+    #input:
+        #expand("results/protein_queries/trees/{query}/{query}.png", query=QUERY_PROTEINS),

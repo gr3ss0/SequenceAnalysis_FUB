@@ -40,7 +40,6 @@ rule align_shorts:
         bwa mem -t {threads} -a {input.assembly} {input.r2} > {output.aligned2} 2>> {log}
         """
     
-# TODO Polypolish filter by insert size, recommended by manual: https://github.com/rrwick/Polypolish/wiki/How-to-run-Polypolish
 rule filter_by_insert_size:
     input:
         aligned1 = rules.align_shorts.output.aligned1,
@@ -84,13 +83,77 @@ rule quast:
     input:
         contig=rules.short_based_polish.output.contig,
     output:
-        html = "results/assembly/{sample}/contiguity/report.html",
-        out_dir = directory("results/assembly/{sample}/contiguity"),
+        html = "results/assembly/{sample}/quast/report.html",
+        out_dir = directory("results/assembly/{sample}/quast"),
     log:
         "logs/quast/{sample}.log"
     threads: 16
     conda:
         "../envs/polypolish.yaml"
-    run:
-        # TODO add --sam option
-        "quast.py {input.contig} -o {output.out_dir} --threads {threads}"
+    shell:
+        """
+        quast.py \
+            {input.contig} \
+            -o {output.out_dir} \
+            --threads {threads} \
+            > {log} 2>&1
+        """
+
+rule busco:
+    input:
+        contig=rules.short_based_polish.output.contig
+
+    output:
+        out_dir=directory("results/assembly/{sample}/busco")
+
+    log:
+        "logs/busco/{sample}.log"
+
+    threads: 16
+
+    params:
+        lineage=config.get("busco_lineage", "enterobacterales_odb12")
+
+    conda:
+        "../envs/busco.yaml"
+
+    shell:
+        """
+        busco \
+            -i {input.contig} \
+            -m genome \
+            -l {params.lineage} \
+            -o busco \
+            --out_path results/assembly/{wildcards.sample} \
+            --cpu {threads} \
+            > {log} 2>&1
+        """
+
+rule multiqc_quast_busco:
+    input:
+        expand(
+            "results/assembly/{sample}/quast",
+            sample=SAMPLES_LONG.index
+        ),
+        expand(
+            "results/assembly/{sample}/busco",
+            sample=SAMPLES_LONG.index
+        )
+
+    output:
+        report_file="results/assembly/multiqc_quast_busco.html",
+        out_dir=directory("results/assembly/multiqc_quast_busco_data")
+
+    log:
+        "logs/multiqc/quast_busco.log"
+
+    conda:
+        "../envs/qc.yaml"
+
+    shell:
+        """
+        multiqc {input} \
+            --filename multiqc_quast_busco.html \
+            --outdir results/assembly \
+            > {log} 2>&1
+        """

@@ -73,7 +73,7 @@ rule processed_qc_long:
     wrapper:
         "v7.6.0/bio/fastqc"
 
-rule qualimap_polish_map:
+rule qualimap_polish_map: #this is before the polypolish filter
     input:
         # fails if not sorted
         bam="results/assembly/polish/{sample}/recombined_paired_sorted.bam",
@@ -93,7 +93,7 @@ rule qualimap_polish_map:
         > {log} 2>&1
         """
 
-rule qualimap_polish_filter:
+rule qualimap_polish_filter: #this is after the polypolish filter
     input:
         # fails if not sorted
         bam="results/assembly/polish/{sample}/recombined_paired_filtered_sorted.bam",
@@ -115,11 +115,27 @@ rule qualimap_polish_filter:
 
 rule multiqc_all:
     input:
-        # Qualimap reports
-        expand("results/qc/qualimap/{sample}", sample=SAMPLES_SHORT.index) if not config["analysis_options"]["skip_qualimap"]==True else [],
-        # FastQC reports
-        expand("results/qc/fastqc/processed_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=['1', '2']),
-        expand("results/qc/fastqc/processed_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index),
+        *(
+            expand("results/qc/fastqc/processed_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=["1", "2"])
+            if TRIMMING_ENABLED
+            else expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=["1", "2"])
+        ),
+        *(
+            expand("results/qc/fastqc/processed_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index)
+            if TRIMMING_ENABLED
+            else expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index)
+        ),
+        *(
+            expand("results/qc/qualimap/polish/{sample}", sample=SAMPLES_SHORT.index)
+            if QUALIMAP_ENABLED
+            else []
+        ),
+        *(
+            expand("results/qc/qualimap/filter/{sample}", sample=SAMPLES_SHORT.index)
+            if QUALIMAP_ENABLED
+            else []
+        )
+        
         
         # # Samtools mapping statistics
         # expand("results/stats/{sample}.flagstat", sample=SAMPLES.index),
@@ -149,7 +165,7 @@ rule multiqc_all:
 rule run_raw_qc:
     input:
         expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=['1', '2']),
-        expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index) if len(config["samples_long_read"])>0 else []
+        expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index) if len(SAMPLES_LONG.index)>0 else []
     output:
         # Definierte Pfade relativ zum Projektverzeichnis
         report_file="results/qc/multiqc_raw.html",

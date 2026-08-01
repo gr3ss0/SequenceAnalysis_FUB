@@ -21,7 +21,7 @@ rule prokka_prediction:
 			   --force \
 			   {input.assembly} > {log} 2>&1
 		"""
-if config["external_genome"]:
+if EXTERNAL_GENOME_ENABLED:
 	rule prokka_predict_external:
 		input:
 			assembly = config["external_genome"]
@@ -50,7 +50,7 @@ PROKKA_PROTEINS = expand(
     sample=SAMPLES_LONG.index
 )
 
-if config["external_genome"]:
+if EXTERNAL_GENOME_ENABLED:
     PROKKA_PROTEINS.append(
         "results/annotation_ext/external_genome/external_genome.faa"
     )
@@ -77,14 +77,14 @@ rule panaroo_core_genome:
 	threads: 64
 	params:
 		mode="--alignment core",
-		treshold="--core_threshold 0.95",
+		threshold="--core_threshold 0.95",
 		sequence_identity="--threshold 0.98"
 	log:
 		"logs/annotation/core_genome.log"
 	conda:
 		"../envs/annotation.yaml"
 	shell:
-		"panaroo -i {input.annotations} -o {output.results} --threads {threads} {params.mode} {params.treshold} --clean-mode sensitive > {log} 2>&1"
+		"panaroo -i {input.annotations} -o {output.results} --threads {threads} {params.mode} {params.threshold} --clean-mode sensitive > {log} 2>&1"
 
 rule iqtree_phylogeny:
 	input:

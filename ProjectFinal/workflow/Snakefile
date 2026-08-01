@@ -5,35 +5,85 @@ configfile: "config/config.yaml"
 SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
 SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
 
-QUERY_FILE = config["protein_sequences"]
 
-QUERY_PROTEINS = [
-    line[1:].strip().split()[0]
-    for line in open(QUERY_FILE)
-    if line.startswith(">")
-]
+TRIMMING_ENABLED = not config["analysis_options"].get("skip_trimming", True)
+QUALIMAP_ENABLED = not config["analysis_options"].get("skip_qualimap", True)
+
+EXTERNAL_GENOME_ENABLED = bool(config["external_genome"])
+RESISTANCE_ENABLED = bool(config["analysis_options"]["search_for_antibiotic_resistence"])
+PROTEIN_PHYLOGENY_ENABLED = bool(config["protein_sequences"])
+
+QUERY_FILE = config["protein_sequences"] if PROTEIN_PHYLOGENY_ENABLED else ""
+
+if PROTEIN_PHYLOGENY_ENABLED:
+	QUERY_PROTEINS = [
+		line[1:].strip().split()[0]
+		for line in open(QUERY_FILE)
+		if line.startswith(">")
+	]
+else:
+	QUERY_PROTEINS = []
+
 
 
 include: "rules/common.smk"
 include: "rules/trimming.smk"
 include: "rules/qc.smk"
 include: "rules/decontamination.smk"
+include: "rules/samtools.smk"
 include: "rules/assembly.smk"
 include: "rules/annotation.smk"
 include: "rules/protein_phylogeny.smk"
 include: "rules/resistance_prediciton.smk"
+),
 
 rule all:
-	input:
+    input:
+        expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index),
+		expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES_LONG.index),
+        "results/phylo_tree/core_genome_tree.png",
+        *(
+            ["results/annotation_ext/external_genome/external_genome.gff"]
+            if EXTERNAL_GENOME_ENABLED
+            else []
+        ),
+        *(
+            ["results/card_amr_report/amr_merged.xlsx"]
+            if RESISTANCE_ENABLED
+            else []
+        
+        *(
+            expand(
+                "results/protein_queries/trees/{query}/{query}.png",
+                query=QUERY_PROTEINS
+            )
+            if PROTEIN_PHYLOGENY_ENABLED
+            else []
+        ), 
+		"results/qc/multiqc_all.html",
+		*(
+            ["results/qc/multiqc_raw.html"]
+            if TRIMMING_ENABLED
+            else []
+        ), #for a comparison of the quality of the raw and trimmed reads
+		"results/assembly/multiqc_quast_busco.html", 
+		*(
+            ["results/qc/multiqc_screen.html"]
+            if not config["analysis_options"]["skip_kraken_screening"]
+            else []
+        )
+
+#rule all:
+	#input:
 		# de novo assembled and annotated genome for each sample. At least prediction of protein coding genes
 		#expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES_SHORT.index),
-		expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index),
+		##expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index),
 		# established metrics
 		#expand("results/assembly/{sample}/contiguity/", sample=SAMPLES_SHORT.index),
 		#expand("results/denovo/{sample}/completness", sample=SAMPLES_SHORT.index),
 		# core genome
 		#"results/annotation/core/core_gene_alignment.aln",
-		"results/phylo_tree/core_genome_tree.png",
+		##"results/phylo_tree/core_genome_tree.png",
 
 		# antibiotic resistance
 		# expand("results/card/{sample}", sample=SAMPLES_SHORT.index),
@@ -47,12 +97,12 @@ rule all:
 		# expand("results/proteins/{protein}/phylo-tree", protein=PROTEINS),
 
 		# AMR
-		"results/card_amr_report/amr_merged.xlsx",
+		##"results/card_amr_report/amr_merged.xlsx",
 
 		# targeted protein phylogenies
-        expand(
-            "results/protein_queries/trees/{query}/{query}.png",
-            query=QUERY_PROTEINS
-        )
+        #expand(
+            #"results/protein_queries/trees/{query}/{query}.png",
+            #query=QUERY_PROTEINS
+        #)
 
 		

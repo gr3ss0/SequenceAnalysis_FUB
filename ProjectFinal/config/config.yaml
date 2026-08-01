@@ -4,7 +4,7 @@ analysis_options:
  skip_kraken_screening: False
  skip_decontamination: False
  integrate_short_reads: True
- search_for_atibiotic_resistence: True
+ search_for_antibiotic_resistence: True
 
 
 # Sheet with paths to the samples
@@ -14,7 +14,7 @@ samples_long_read: "config/samples_long.tsv"
 
 #screening + decontamination, this is optional, controlled in config analysis options
 kraken2_db: "resources/kraken2_db" #to be downloaded for the kraken2 screening
-path_to_contamination_fasta: [] #for the decontamination
+contamination_fasta: [] #for the decontamination
 
 
 #optional and controlled from here itself
@@ -33,6 +33,6 @@ diamond_db: "resources/diamond_db/protein_pool"
 protein_sequences: [] #this is optional
 
 
-
-
+flye_technique: "--pacbio-raw" #mention the technique you would like to use for the assembly
+busco_lineage: "enterobacterales_odb12" #mention the lineage you would like to use for the busco completeness analysis
 
