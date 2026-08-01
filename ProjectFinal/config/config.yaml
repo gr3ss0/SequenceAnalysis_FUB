@@ -26,3 +26,4 @@ annotation_options:
 
 decontamination:
   contamination_fasta: "resources/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+  contamination_index: "resources/decon_index/"

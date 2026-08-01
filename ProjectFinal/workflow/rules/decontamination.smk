@@ -97,14 +97,14 @@ rule decon_index: #building the bowtie2 index for the mapping to the contaminati
 rule decon_map_short:
     input:
         unpack(decide_trimming_short), #the input to minimap in 4B is input to decon_map in 5A
-        index = rules.decon_index.output,
+        index = rules.decon_index.output if config["decontamination"].get("contamination_index", "") == "" else config["decontamination"]["contamination_index"]
     output:
         bam = "results/decontamination/short/{sample}_contamination_mapped.bam"
     params:
         prefix = "results/decon_index/contamination"
     log:
         "logs/decon_map/short/{sample}.log"
-    threads: 4
+    threads: 8
     conda:
         "../envs/mapping.yaml"
     shell:
@@ -163,19 +163,19 @@ rule unzip_long:
 rule decon_map_long:
     input:
         reads = rules.unzip_long.output.reads, 
-        ref = rules.decon_index.output  # Reference FASTA or .mmi index file
+        index = rules.decon_index.output if config["decontamination"].get("contamination_index", "") == "" else config["decontamination"]["contamination_index"]
     output:
         bam = "results/decontamination/long/{sample}_contamination_mapped.bam"
     log:
         "logs/decon_map/long/{sample}.log"
-    threads: 4
+    threads: 8
     params:
         preset = "map-ont"  # Use "map-hifi" for PacBio HiFi
     conda:
         "../envs/mapping.yaml"
     shell:
         """
-        minimap2 -ax {params.preset} -t {threads} {input.ref} {input.reads} 2> {log} | \
+        minimap2 -ax {params.preset} -t {threads} {input.index} {input.reads} 2> {log} | \
         samtools view -@ {threads} -bS - > {output.bam} 2>> {log}
         """
 
@@ -185,7 +185,7 @@ rule decon_filter_long:
         bam = rules.decon_map_long.output.bam,
     output:
         fastq = "results/decontaminated/long/{sample}.fastq"
-    log:
+    log:.--
         "logs/decon_filter/long/{sample}.log"
     threads: 4
     conda:
