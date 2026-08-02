@@ -14,7 +14,6 @@ rule diamond_build:
     threads: 16
     shell:
         """
-        mkdir -p $(dirname {params.db})
         diamond makedb \
             --in {input.protein_pool} \
             -d {params.db} \
@@ -80,7 +79,6 @@ rule tree_per_protein:
         "../envs/phylo.yaml"
     shell:
         """
-        mkdir -p results/protein_queries/trees/{wildcards.query}
 
         iqtree \
             -s {input.alignment} \

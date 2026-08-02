@@ -7,33 +7,54 @@ CARD_AMR_REPORTS = expand(
     sample=SAMPLES_LONG.index
 )
 
-if config["external_genome"]:
+if EXTERNAL_GENOME_ENABLED:
     CARD_AMR_REPORTS.append(
         "results/card_amr_report/external/card_amr_report.txt"
     )
-rule set_up_card:
+
+rule set_up_card_download:
     output:
-        tarball = temp(CARD_DIR+ "/card-data.tar.bz2"),
         json = CARD_DIR + "/card.json",
+        pmid = CARD_DIR + "/PMID.tsv"
+
         #db_instance = directory(CARD_DIR),
     log:
         "logs/card/download.log"
     params:
         version = CARD_VERSION,
-        out_dir = CARD_DIR
+        out_dir = CARD_DIR,
+        tarball = CARD_DIR + "/card-data.tar.bz2"
     conda:
         "../envs/resistance_prediction.yaml"
     shell:
         """
-        wget -O {output.tarball} "https://card.mcmaster.ca/download/0/broadstreet-v{params.version}.tar.bz2" > {log} 2>&1
-        tar -xf {output.tarball} -C {params.out_dir} >> {log} 2>&1
-        rgi load --card_json {output.json} --local  >> {log} 2>&1
+        wget -O {params.tarball} "https://card.mcmaster.ca/download/0/broadstreet-v{params.version}.tar.bz2" > {log} 2>&1
+        tar -xf {params.tarball} -C {params.out_dir} >> {log} 2>&1 
         """
 
+rule set_up_card_after_download:
+    input:
+        card_json = CARD_DIR + "/card.json", 
+        pmid = CARD_DIR + "/PMID.tsv"
+    output:
+        dummy= CARD_DIR + "/.card_loaded"
+    log:
+        "logs/card/setup.log"
+    conda:
+        "../envs/resistance_prediction.yaml"
+    shell:
+        """
+        rgi load \
+            --card_json {input.card_json} \
+            --local \
+            > {log} 2>&1
+
+        touch {output.dummy}
+        """
 
 rule card_amr_detection:
     input:
-        rules.set_up_card.output.json,
+        card_ready = rules.set_up_card_after_download.output.dummy,
         proteins = "results/annotation/{sample}/{sample}.faa",
     output:
         txt = "results/card_amr_report/{sample}/card_amr_report.txt",
@@ -58,10 +79,10 @@ rule card_amr_detection:
             --clean \
             > {log} 2>&1
         """
-if config["external_genome"]:
+if EXTERNAL_GENOME_ENABLED:
     rule card_amr_detection_external:
         input:
-            rules.set_up_card.output.json,
+            card_ready = rules.set_up_card_after_download.output.dummy,
             proteins = "results/annotation_ext/external_genome/external_genome.faa",
         output:
             txt = "results/card_amr_report/external/card_amr_report.txt",

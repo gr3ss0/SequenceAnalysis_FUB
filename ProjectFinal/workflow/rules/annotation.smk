@@ -1,26 +1,26 @@
 rule prokka_prediction:
-	input:
+    input:
         assembly = f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}",
-	output:
-		# Prokka creates a GFF with FASTA appended automatically
-		out_dir = directory("results/annotation/{sample}"),
-		genes = "results/annotation/{sample}/{sample}.gff",
-		proteins = "results/annotation/{sample}/{sample}.faa",
-		stats = "results/annotation/{sample}/{sample}.txt"
-	threads: 8
-	conda:
-		"../envs/annotation.yaml"
-	log:
-		"logs/annotation/{sample}.log"
-	shell:
-		"""
-		prokka --cpus {threads} \
-			   --outdir {output.out_dir} \
-			   --prefix {wildcards.sample} \
-			   --locustag {wildcards.sample} \
-			   --force \
-			   {input.assembly} > {log} 2>&1
-		"""
+    output:
+        # Prokka creates a GFF with FASTA appended automatically
+        out_dir = directory("results/annotation/{sample}"),
+        genes = "results/annotation/{sample}/{sample}.gff",
+        proteins = "results/annotation/{sample}/{sample}.faa",
+        stats = "results/annotation/{sample}/{sample}.txt"
+    threads: 8
+    conda:
+        "../envs/annotation.yaml"
+    log:
+        "logs/annotation/{sample}.log"
+    shell:
+        """
+        prokka --cpus {threads} \
+                --outdir {output.out_dir} \
+                --prefix {wildcards.sample} \
+                --locustag {wildcards.sample} \
+                --force \
+                {input.assembly} > {log} 2>&1
+        """
 if EXTERNAL_GENOME_ENABLED:
 	rule prokka_predict_external:
 		input:
@@ -64,7 +64,6 @@ rule combine_prokka_proteins:
         "logs/annotation/combined_proteins.log"
     shell:
         """
-        mkdir -p results/annotation/pool
         cat {input.proteins} > {output.protein_pool}
         """
 

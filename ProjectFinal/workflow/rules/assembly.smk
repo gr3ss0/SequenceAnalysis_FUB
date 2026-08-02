@@ -112,7 +112,7 @@ rule busco:
     threads: 16
 
     params:
-        lineage=config.get("busco_lineage", "enterobacterales_odb12")
+        lineage=config.get("busco_lineage", "enterobacterales_odb12") #this will be downloaded by the busco command
 
     conda:
         "../envs/busco.yaml"

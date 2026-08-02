@@ -1,6 +1,6 @@
 sample	fq
-sample1	/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/SET2_sampled/sample1_PacBio.fastq.gz
-sample2	/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/SET2_sampled/sample2_PacBio.fastq.gz
-sample3	/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/SET2_sampled/sample3_PacBio.fastq.gz
-sample4	/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/SET2_sampled/sample4_PacBio.fastq.gz
-sample5	/storage/mi/michag01/SequenceAnalysis_SS26/ProjectFinal/resources/SET2_sampled/sample5_PacBio.fastq.gz
+sample1	/storage/mi/shup01/seq_analysis/michal/SequenceAnalysis_FUB/ProjectFinal/resources/SET2_sampled/SET2_sampled/sample1_PacBio.fastq.gz
+sample2	/storage/mi/shup01/seq_analysis/michal/SequenceAnalysis_FUB/ProjectFinal/resources/SET2_sampled/SET2_sampled/sample2_PacBio.fastq.gz
+sample3	/storage/mi/shup01/seq_analysis/michal/SequenceAnalysis_FUB/ProjectFinal/resources/SET2_sampled/SET2_sampled/sample3_PacBio.fastq.gz
+sample4	/storage/mi/shup01/seq_analysis/michal/SequenceAnalysis_FUB/ProjectFinal/resources/SET2_sampled/SET2_sampled/sample4_PacBio.fastq.gz
+sample5	/storage/mi/shup01/seq_analysis/michal/SequenceAnalysis_FUB/ProjectFinal/resources/SET2_sampled/SET2_sampled/sample5_PacBio.fastq.gz

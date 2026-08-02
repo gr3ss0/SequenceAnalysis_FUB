@@ -116,7 +116,7 @@ rule decon_map:
         "../envs/mapping.yaml"
     shell:
         """
-        set -euo pipefail
+        set -e -o pipefail
 
         bowtie2 \
             -p {threads} \

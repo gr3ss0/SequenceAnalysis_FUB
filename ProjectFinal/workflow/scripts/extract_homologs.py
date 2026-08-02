@@ -31,8 +31,8 @@ alignment_df = alignment_df.sort_values(
 top_hits = (
     alignment_df
     .groupby(["qseqid", "sample"])
-    .head(2)
-) #only taking the top 2 hits for each query and sample
+    .head(1) #replace with n for any n
+) #only taking the top n hits for each query and sample
 
 hits_by_query = dict(tuple(top_hits.groupby("qseqid"))) 
 

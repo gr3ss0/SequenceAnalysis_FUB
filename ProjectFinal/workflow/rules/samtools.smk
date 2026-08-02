@@ -5,7 +5,7 @@ rule convert:
 		"results/assembly/polish/{sample}_aligned_{read}.bam"
 	threads: 4
 	log:
-		"logs/polish/convert/{sample}.log"
+		"logs/polish/convert/{sample}_{read}.log"
 	conda:
 		"../envs/assembly.yaml"
 	shell:

@@ -46,19 +46,19 @@ include: "rules/resistance_prediction.smk"
 
 rule all:
     input:
-        expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index),
-        expand(f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}", sample=SAMPLES_LONG.index),
-        "results/phylo_tree/core_genome_tree.png",
+        expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index), #prokka output
+        expand(f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}", sample=SAMPLES_LONG.index), #assembly output
+        "results/phylo_tree/core_genome_tree.png", #panaroo output
         *(
             ["results/annotation_ext/external_genome/external_genome.gff"]
             if EXTERNAL_GENOME_ENABLED
             else []
-        ),
+        ), #annotated external genome
         *(
             ["results/card_amr_report/amr_merged.xlsx"]
             if RESISTANCE_ENABLED
             else []
-        ),
+        ), #excel file with merged AMR results
         *(
             expand(
                 "results/protein_queries/trees/{query}/{query}.png",
@@ -66,19 +66,19 @@ rule all:
             )
             if PROTEIN_PHYLOGENY_ENABLED
             else []
-        ), 
+        ), #tree per protein query
         "results/qc/multiqc_all.html",
         *(
             ["results/qc/multiqc_raw.html"]
             if TRIMMING_ENABLED
             else []
         ), #for a comparison of the quality of the raw and trimmed reads
-        "results/assembly/multiqc_quast_busco.html", 
+        "results/assembly/multiqc_quast_busco.html", #always produced
         *(
             ["results/qc/multiqc_screen.html"]
             if not config["analysis_options"]["skip_kraken_screening"]
             else []
-        )
+        ) #contaminants screening
 
 #rule all:
 	#input:
