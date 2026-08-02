@@ -38,7 +38,7 @@ rule raw_qc_long:
 rule processed_qc_short:
     input:
         lambda wildcards: (
-            [] if config["analysis_options"].get("skip_trimming", False)
+            [] if config["analysis_options"].get("skip_trimming", True)
             else [f"results/trimmed/short/{wildcards.sample}.{wildcards.read}.fastq.gz"]
         )
     output:
@@ -81,7 +81,7 @@ rule qualimap_polish_map: #this is before the polypolish filter
     output:
         directory("results/qc/qualimap/polish/{sample}")
     log:
-        "logs/qualimap/bamqc/{sample}.log",
+        "logs/qualimap/bamqc/{sample}_polish.log",
     conda:
         "../envs/qc.yaml"
     threads: 4
@@ -101,7 +101,7 @@ rule qualimap_polish_filter: #this is after the polypolish filter
     output:
         directory("results/qc/qualimap/filter/{sample}")
     log:
-        "logs/qualimap/bamqc/{sample}.log",
+        "logs/qualimap/bamqc/{sample}_filter.log",
     conda:
         "../envs/qc.yaml"
     threads: 4

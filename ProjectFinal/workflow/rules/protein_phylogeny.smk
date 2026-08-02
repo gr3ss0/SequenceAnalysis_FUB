@@ -13,18 +13,19 @@ rule diamond_build:
         db=DIAMOND_DB_FILE
     threads: 16
     shell:
-    """
-    mkdir -p $(dirname {params.db})
-    diamond makedb \
-        --in {input.protein_pool} \
-        -d {params.db} \
-        > {log} 2>&1
-    """
+        """
+        mkdir -p $(dirname {params.db})
+        diamond makedb \
+            --in {input.protein_pool} \
+            -d {params.db} \
+            > {log} 2>&1
+        """
 
 
 rule diamond_find_align_orthologs:
     input:
-        db_instance = rules.diamond_build.output.db_file
+        db_instance = rules.diamond_build.output.db_file, 
+        queries = QUERY_FILE
     output:
         alignment= "results/protein_queries/alignment.tsv"
     log:
@@ -33,17 +34,19 @@ rule diamond_find_align_orthologs:
         "../envs/diamond.yaml" # Environment containing blast/python
     threads: 32
     params:
-        format = "--outfmt 6 qseqid sseqid pident",
-        queries=QUERY_FILE
+        format = "--outfmt 6 qseqid sseqid pident"
     shell:
-        "diamond blastp -d {input.db_instance} -q {params.queries} -o {output.alignment} {params.format}"
+        "diamond blastp -d {input.db_instance} -q {input.queries} -o {output.alignment} {params.format}"
 
 rule extract_homologs:
     input:
         tsv = rules.diamond_find_align_orthologs.output.alignment,
-        protein_pool=rules.combine_prokka_proteins.output.protein_pool
+        protein_pool=rules.combine_prokka_proteins.output.protein_pool,
+        queries=QUERY_FILE
     output:
         fasta_files = expand("results/protein_queries/fasta/{query}.fasta", query=QUERY_PROTEINS),
+    conda:
+        "../envs/diamond.yaml"
     params:
         threshold = 50
     script:
@@ -74,7 +77,7 @@ rule tree_per_protein:
     params:
         prefix=lambda wildcards: f"results/protein_queries/trees/{wildcards.query}/{wildcards.query}"
     conda:
-        "../envs/iqtree.yaml"
+        "../envs/phylo.yaml"
     shell:
         """
         mkdir -p results/protein_queries/trees/{wildcards.query}

@@ -22,7 +22,7 @@ rule kraken2_short:
 
 rule kraken2_long:
     input:
-        get_map_input_long, 
+        reads = get_map_input_long, 
         db = config["kraken2_db"]
     output:
         report = "results/kraken2/long/{sample}.kraken2.report.txt"
@@ -37,7 +37,7 @@ rule kraken2_long:
             --threads {threads} \
             --report {output.report} \
             --output - \
-            {input}\
+            {input.reads}\
             > /dev/null 2> {log}
         """
 
@@ -52,7 +52,7 @@ rule multiqc_screen:
     log:
         "logs/multiqc/screen.log"
     conda:
-        "../envs/multiqc.yaml" 
+        "../envs/qc.yaml" 
     shell:
         """
         multiqc {input} \
@@ -125,11 +125,7 @@ rule decon_map:
             -2 {input.r2} \
             2>{log} |
 
-        samtools view \
-            -@ {threads} \
-            -bS \
-            - > {output.bam}
-            2>> {log}
+        samtools view -@ {threads} -bS - > {output.bam} 2>>{log}
         """
 
 

@@ -9,6 +9,7 @@ alignment_df = pd.read_csv(
 )
 
 prot_dict = SeqIO.to_dict(SeqIO.parse(snakemake.input.protein_pool, "fasta"))
+query_dict = SeqIO.to_dict(SeqIO.parse(snakemake.input.queries, "fasta"))
 threshold = snakemake.params.threshold
 output_files = {
     os.path.basename(f).replace(".fasta", ""): f
@@ -33,11 +34,15 @@ top_hits = (
     .head(2)
 ) #only taking the top 2 hits for each query and sample
 
-for query, group in top_hits.groupby('qseqid'):
-    output_file = output_files[str(query)]
+hits_by_query = dict(tuple(top_hits.groupby("qseqid"))) 
+
+for query, output_file in output_files.items():           
     with open(output_file, "w") as f:
-        for protein_id in group['sseqid']:
-            SeqIO.write(prot_dict[protein_id], f, "fasta")
+        SeqIO.write(query_dict[query], f, "fasta")#always need to have the query protein        
+        group = hits_by_query.get(query)
+        if group is not None:                  
+            for protein_id in group['sseqid']:
+                SeqIO.write(prot_dict[protein_id], f, "fasta") #write the orthologs
 
 
 

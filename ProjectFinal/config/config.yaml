@@ -2,7 +2,7 @@ analysis_options:
  skip_trimming: False
  skip_qualimap: False
  skip_kraken_screening: False
- skip_decontamination: False
+ skip_decontamination: False #only relevant if you have a contamination fasta file
  integrate_short_reads: True
  search_for_antibiotic_resistence: True
 
@@ -14,7 +14,7 @@ samples_long_read: "config/samples_long.tsv"
 
 #screening + decontamination, this is optional, controlled in config analysis options
 kraken2_db: "resources/kraken2_db" #to be downloaded for the kraken2 screening
-contamination_fasta: [] #for the decontamination
+contamination_fasta: [] #for the decontamination, also need skip_decontamination to be set to False in the analysis options section above
 
 
 #optional and controlled from here itself

@@ -62,11 +62,11 @@ rule combine_prokka_proteins:
         protein_pool = "results/annotation/pool/combined_protein_CDS.fasta"
     log:
         "logs/annotation/combined_proteins.log"
-	shell:
-		"""
-		mkdir -p results/annotation/pool
-		cat {input.proteins} > {output.protein_pool}
-		"""
+    shell:
+        """
+        mkdir -p results/annotation/pool
+        cat {input.proteins} > {output.protein_pool}
+        """
 
 rule panaroo_core_genome:
 	input:
@@ -92,7 +92,7 @@ rule iqtree_phylogeny:
 	output:
 		multiext("results/phylo_tree/iqtree_out", ".bionj", ".log", ".mldist", ".model.gz", ".treefile", ".iqtree", ".ckp.gz")
 	log:
-		"logs/phylo_tree.log"
+		"logs/phylo_tree/tree.log"
 	threads: 4
 	conda:
 		"../envs/phylo.yaml"
@@ -107,7 +107,7 @@ rule core_genome_tree_plot:
 	output:
 		"results/phylo_tree/core_genome_tree.png"
 	log:
-		"logs/"
+		"logs/phylo_tree/tree_plot.log"
 	conda:
 		"../envs/phylo.yaml"
 	script:

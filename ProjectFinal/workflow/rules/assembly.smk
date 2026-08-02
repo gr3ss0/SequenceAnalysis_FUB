@@ -89,7 +89,7 @@ rule quast:
         "logs/quast/{sample}.log"
     threads: 16
     conda:
-        "../envs/polypolish.yaml"
+        "../envs/quast.yaml"
     shell:
         """
         quast.py \

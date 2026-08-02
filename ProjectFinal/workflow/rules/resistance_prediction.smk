@@ -15,7 +15,7 @@ rule set_up_card:
     output:
         tarball = temp(CARD_DIR+ "/card-data.tar.bz2"),
         json = CARD_DIR + "/card.json",
-        db_instance = directory(CARD_DIR),
+        #db_instance = directory(CARD_DIR),
     log:
         "logs/card/download.log"
     params:

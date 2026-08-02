@@ -1,6 +1,6 @@
 def get_map_input_short(wildcards):
 
-    if not config["analysis_options"].get("skip_decontamination", False):
+    if DECONTAMINATION_ENABLED:
 
         return {
             "r1": f"results/decontaminated/{wildcards.sample}.1.fastq",
