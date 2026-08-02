@@ -2,15 +2,15 @@ analysis_options:
  skip_trimming: False
  skip_qualimap: False
  skip_kraken_screening: False
- skip_decontamination: False #only relevant if you have a contamination fasta file
- integrate_short_reads: True
  search_for_antibiotic_resistence: True
+ skip_decontamination: False #only relevant if you have a contamination fasta file
+ integrate_short_reads: False #to integrate short reads with long reads for the assembly
+ 
 
 
 # Sheet with paths to the samples
-samples_short_read: "config/samples_short.tsv" #path to the sheet with the short read samples, create a blank one with headers if you do not have any short read samples
-samples_long_read: "config/samples_long.tsv" 
-
+samples_short_read: "config/samples_short.tsv" #path to the sheet with the short read samples, only relevant if integrate_short_reads is set to True
+samples_long_read: "config/samples_long_ONT.tsv" #or config/samples_long_ONT.tsv, this is required
 
 #screening + decontamination, this is optional, controlled in config analysis options
 kraken2_db: "resources/kraken2_db" #need to put the path to the kraken2 database
@@ -33,6 +33,6 @@ diamond_db: "resources/diamond_db/protein_pool"
 protein_sequences: resources/query_proteins/query_proteins.fasta #this is optional, make [] if you do not want to run the protein phylogeny analysis
 
 
-flye_technique: "--pacbio-raw" #mention the technique you would like to use for the assembly
-busco_lineage: "enterobacterales_odb12" #mention the lineage you would like to use for the busco completeness analysis
+flye_technique: "--pacbio-raw" #"--nano-raw" or "--nano-hq" or "--pacbio-raw" etc depending on the long read sequencing technique used
+busco_lineage: "enterobacterales_odb12" #mention the lineage you would like to use for the busco completeness analysis, it will be downloaded during Busco run
 

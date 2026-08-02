@@ -2,10 +2,19 @@ import os
 import pandas as pd
 
 configfile: "config/config.yaml"
-SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
-SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
 
 INTEGRATE_SHORT_READS = bool(config["analysis_options"]['integrate_short_reads'])
+
+if INTEGRATE_SHORT_READS:
+    SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
+else:
+    SAMPLES_SHORT = pd.DataFrame(columns=["read_type", "fq1", "fq2"]).set_index(
+        pd.Index([], name="sample")
+    )
+
+SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
+
+
 FINAL_ASSEMBLY = "secondary_assembly.fasta" if INTEGRATE_SHORT_READS else "primary_assembly.fasta"
 
 
@@ -61,7 +70,7 @@ rule all:
         ), #excel file with merged AMR results
         *(
             expand(
-                "results/protein_queries/trees/{query}/{query}.png",
+                "results/protein_queries/trees/{query}/{query}.png", #new is for check
                 query=QUERY_PROTEINS
             )
             if PROTEIN_PHYLOGENY_ENABLED
