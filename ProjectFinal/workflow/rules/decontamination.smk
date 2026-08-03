@@ -22,7 +22,7 @@ rule kraken2_short:
 
 rule kraken2_long:
     input:
-        reads = get_map_input_long, 
+        reads = get_decon_input_long, #it should not get the decontaminated reads as input
         db = config["kraken2_db"]
     output:
         report = "results/kraken2/long/{sample}.kraken2.report.txt"
@@ -33,12 +33,13 @@ rule kraken2_long:
         "../envs/kraken2.yaml"
     shell:
         """
-        kraken2 --db {input.db} \
+        kraken2 \
+            --db {input.db} \
             --threads {threads} \
             --report {output.report} \
-            --output - \
-            {input.reads}\
-            > /dev/null 2> {log}
+            --output /dev/null \
+            {input.reads} \
+            2> {log}
         """
 
 
@@ -66,6 +67,8 @@ rule screen:
     #   snakemake --use-conda --cores 10 screen can be used to stop here and inspect the multiqc report
     input:
         "results/qc/multiqc_screen.html"
+
+
 
 #rule contaminants_index:
 #     input:
@@ -155,6 +158,83 @@ rule decon_filter:
             {output.name_sorted} >> {log} 2>&1
         """
 
+rule decon_index_long: #building the minimap2 index for mapping long reads to the contamination sequences
+    input:
+        fasta = config['contamination_fasta']
+    output:
+        mmi = "results/decon_index_long/contamination.mmi"
+    log:
+        "logs/decon_index_long/build.log"
+    threads: 8
+    params:
+        preset = config.get("minimap2_long_preset", "map-pb")
+    conda:
+        "../envs/mapping.yaml"
+    shell:
+        """
+        minimap2 \
+            -t {threads} \
+            -x {params.preset} \
+            -d {output.mmi} \
+            {input.fasta} \
+            > {log} 2>&1
+        """
+
+
+rule decon_map_long:
+    input:
+        reads = get_decon_input_long,
+        index = rules.decon_index_long.output.mmi #this is mmi file
+    output:
+        bam = "results/decontamination/long/{sample}_contamination_mapped.bam"
+    log:
+        "logs/decon_map_long/{sample}.log"
+    threads: 8
+    params:
+        preset = config.get("minimap2_long_preset", "map-pb")
+    conda:
+        "../envs/mapping.yaml"
+    shell:
+        """
+        set -e -o pipefail
+
+        minimap2 \
+            -t {threads} \
+            -ax {params.preset} \
+            {input.index} \
+            {input.reads} \
+            2>{log} |
+
+        samtools view \
+            -@ {threads} \
+            -b \
+            -o {output.bam} \
+            - \
+            2>> {log}
+        """
+
+rule decon_filter_long:
+    input:
+        bam = rules.decon_map_long.output.bam
+    output:
+        fq = "results/decontaminated/long/{sample}.fastq", 
+        
+    log:
+        "logs/decon_filter_long/{sample}.log"
+    threads: 8
+    conda:
+        "../envs/mapping.yaml"
+    shell:
+        """
+        samtools fastq \
+            -@ {threads} \
+            -f 4 \
+            -n \
+            {input.bam} \
+            > {output.fq} \
+            2> {log}
+        """
+        
 
 #     rule decon_stats: 
 #         #this is included in rule multiqc_all when decontamination is enabled (can be seen in qc.smk)

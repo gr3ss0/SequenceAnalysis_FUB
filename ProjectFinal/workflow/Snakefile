@@ -31,6 +31,11 @@ DECONTAMINATION_ENABLED = (
 
 QUERY_FILE = config["protein_sequences"] if PROTEIN_PHYLOGENY_ENABLED else ""
 
+
+
+
+
+
 if PROTEIN_PHYLOGENY_ENABLED:
 	QUERY_PROTEINS = [
 		line[1:].strip().split()[0]

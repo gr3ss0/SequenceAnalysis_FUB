@@ -12,6 +12,7 @@ analysis_options:
 samples_short_read: "config/samples_short.tsv" #path to the sheet with the short read samples, only relevant if integrate_short_reads is set to True
 samples_long_read: "config/samples_long_pacbio.tsv" #or config/samples_long_ONT.tsv, this is required
 
+
 #screening + decontamination, this is optional, controlled in config analysis options
 kraken2_db: "resources/kraken2_db" #need to put the path to the kraken2 database
 contamination_fasta: "resources/contamination/contamination.fasta" #for the decontamination, make this [] and set skip_decontamination to True if you do not want to run the decontamination step
@@ -32,11 +33,19 @@ card_version: "4.0.1"  # Pin the exact version for scientific reproducibility
 diamond_db: "resources/diamond_db/protein_pool" 
 protein_sequences: "resources/query_proteins/query_proteins.fasta" #this is optional, make [] if you do not want to run the protein phylogeny analysis
 
+#preset for minimap2
+minimap2_long_preset: "map-pb" # "map-ont" or "map-hifi" or "map-pb" depending on the long read sequencing technique used
 
+#flye paramters
 flye_technique: "--pacbio-raw" #"--nano-raw" or "--nano-hq" or "--pacbio-raw" etc depending on the long read sequencing technique used
+flye_polishing_iterations: 1 #number of iterations in the long read polishing
+
 busco_lineage: "enterobacterales_odb12" #mention the busco lineage you would like to use for the busco completeness analysis, it will be downloaded during Busco run
 
-
+#useful parameters for panaroo
+panaroo:
+ core_threshold: 0.95 #core threshold for the panaroo analysis
+ sequence_identity_threshold: 0.98 #sequence identity threshold
 
 
 #-----------------------------------------------------------

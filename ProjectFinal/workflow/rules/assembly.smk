@@ -10,11 +10,12 @@ rule long_based_assembly:
     params:
         technique=config.get("flye_technique", "--pacbio-raw"),
         out_dir = directory("results/assembly/{sample}"),
+        iterations=config.get("flye_polishing_iterations", 1),
     conda:
         "../envs/flye.yaml"
     shell:
         """
-        flye {params.technique} {input} --out-dir {params.out_dir} --threads {threads} > {log} 2>&1
+        flye {params.technique} {input} --out-dir {params.out_dir} --iterations {params.iterations} --threads {threads} > {log} 2>&1
         mv "{params.out_dir}/assembly.fasta" {output.assembly}
         """
 

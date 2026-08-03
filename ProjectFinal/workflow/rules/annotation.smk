@@ -21,43 +21,34 @@ rule prokka_prediction:
                 --force \
                 {input.assembly} > {log} 2>&1
         """
-if EXTERNAL_GENOME_ENABLED:
-	rule prokka_predict_external:
-		input:
-			assembly = config["external_genome"]
-		output:
-			out_dir = directory("results/annotation_ext/external_genome"),
-			genes = "results/annotation_ext/external_genome/external_genome.gff",
-			proteins = "results/annotation_ext/external_genome/external_genome.faa",
-			stats = "results/annotation_ext/external_genome/external_genome.txt"
-		threads: 8
-		conda:
-			"../envs/annotation.yaml"
-		log:
-			"logs/annotation/external_genome.log"
-		shell:
-			"""
-			prokka --cpus {threads} \
-				   --outdir {output.out_dir} \
-				   --prefix external_genome \
-				   --locustag EXTERNAL \
-				   --force \
-				   {input.assembly} > {log} 2>&1
-			"""
 
-PROKKA_PROTEINS = expand(
-    "results/annotation/{sample}/{sample}.faa",
-    sample=SAMPLES_LONG.index
-)
+rule prokka_predict_external:
+    input:
+        assembly = config["external_genome"]
+    output:
+        out_dir = directory("results/annotation_ext/external_genome"),
+        genes = "results/annotation_ext/external_genome/external_genome.gff",
+        proteins = "results/annotation_ext/external_genome/external_genome.faa",
+        stats = "results/annotation_ext/external_genome/external_genome.txt"
+    threads: 8
+    conda:
+        "../envs/annotation.yaml"
+    log:
+        "logs/annotation/external_genome.log"
+    shell:
+        """
+        prokka --cpus {threads} \
+                --outdir {output.out_dir} \
+                --prefix external_genome \
+                --locustag EXTERNAL \
+                --force \
+                {input.assembly} > {log} 2>&1
+        """
 
-if EXTERNAL_GENOME_ENABLED:
-    PROKKA_PROTEINS.append(
-        "results/annotation_ext/external_genome/external_genome.faa"
-    )
 
 rule combine_prokka_proteins:
     input:
-        proteins = PROKKA_PROTEINS
+        proteins = get_prokka_proteins
     output:
         protein_pool = "results/annotation/pool/combined_protein_CDS.fasta"
     log:
@@ -76,14 +67,14 @@ rule panaroo_core_genome:
 	threads: 64
 	params:
 		mode="--alignment core",
-		threshold="--core_threshold 0.95",
-		sequence_identity="--threshold 0.98"
+		threshold=f"--core_threshold {config.get("panaroo", {}).get("core_threshold", 0.95)}",
+		sequence_identity=f"--threshold {config.get("panaroo", {}).get("sequence_identity_threshold", 0.98)}"
 	log:
 		"logs/annotation/core_genome.log"
 	conda:
 		"../envs/annotation.yaml"
 	shell:
-		"panaroo -i {input.annotations} -o {output.results} --threads {threads} {params.mode} {params.threshold} --clean-mode sensitive > {log} 2>&1"
+		"panaroo -i {input.annotations} -o {output.results} --threads {threads} {params.mode} {params.threshold} {params.sequence_identity} --clean-mode sensitive > {log} 2>&1"
 
 rule iqtree_phylogeny:
 	input:
