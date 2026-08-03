@@ -47,7 +47,7 @@ rule prokka_predict_external:
 
 PROKKA_PROTEINS = expand(
     "results/annotation/{sample}/{sample}.faa",
-    sample=SAMPLES_LONG.index
+    sample=SAMPLES.index
 )
 
 if EXTERNAL_GENOME_ENABLED:

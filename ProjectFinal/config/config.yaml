@@ -4,7 +4,7 @@ analysis_options:
  skip_kraken_screening: False
  search_for_antibiotic_resistance: True
  skip_decontamination: False #only relevant if you have a contamination fasta file
- integrate_short_reads: True #to integrate short reads with long reads for the assembly
+ integrate_short_reads: False #to integrate short reads with long reads for the assembly
  
 
 

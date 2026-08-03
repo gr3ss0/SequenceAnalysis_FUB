@@ -64,9 +64,7 @@ def get_final_assembly(wildcards):
     """
     Determine the final assembly file path based on whether short reads are integrated and available.
     """
-    if INTEGRATE_SHORT_READS 
-    and SAMPLES.at[wildcards.sample, "short_fq1"].notnull() 
-    and SAMPLES.at[wildcards.sample, "short_fq2"].notnull():
+    if INTEGRATE_SHORT_READS and pd.notnull(SAMPLES.at[wildcards.sample, "short_fq1"]) and pd.notnull(SAMPLES.at[wildcards.sample, "short_fq2"]):
         return f"results/assembly/{wildcards.sample}/secondary_assembly.fasta"
     else:
         return f"results/assembly/{wildcards.sample}/primary_assembly.fasta"
@@ -79,17 +77,17 @@ def get_decon_input_long(wildcards): #this is the input to the decontamination o
 
     else:
 
-        return SAMPLES_LONG.at[wildcards.sample, 'fq']
+        return SAMPLES.at[wildcards.sample, 'fq']
 
 
 def get_prokka_proteins(wildcards): #used for the combine_prokka_proteins rule
-    proteins = expand("results/annotation/{sample}/{sample}.faa", sample=SAMPLES_LONG.index)
+    proteins = expand("results/annotation/{sample}/{sample}.faa", sample=SAMPLES.index)
     if EXTERNAL_GENOME_ENABLED:
         proteins.append("results/annotation_ext/external_genome/external_genome.faa")
     return proteins
 
 def get_card_amr_reports(wildcards): #used for the merge_amr_reports rule
-    reports = expand("results/card_amr_report/{sample}/card_amr_report.txt", sample=SAMPLES_LONG.index)
+    reports = expand("results/card_amr_report/{sample}/card_amr_report.txt", sample=SAMPLES.index)
     if EXTERNAL_GENOME_ENABLED:
         reports.append("results/card_amr_report/external/card_amr_report.txt")
     return reports
