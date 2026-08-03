@@ -22,7 +22,7 @@ TRIMMING_ENABLED = not config["analysis_options"].get("skip_trimming", True)
 QUALIMAP_ENABLED = not config["analysis_options"].get("skip_qualimap", True)
 
 EXTERNAL_GENOME_ENABLED = bool(config["external_genome"])
-RESISTANCE_ENABLED = bool(config["analysis_options"]["search_for_antibiotic_resistence"])
+RESISTANCE_ENABLED = bool(config["analysis_options"]["search_for_antibiotic_resistance"])
 PROTEIN_PHYLOGENY_ENABLED = bool(config["protein_sequences"])
 DECONTAMINATION_ENABLED = (
     bool(config["contamination_fasta"])
