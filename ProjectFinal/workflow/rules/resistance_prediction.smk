@@ -4,7 +4,7 @@ CARD_VERSION = config["card_version"]
 
 CARD_AMR_REPORTS = expand(
     "results/card_amr_report/{sample}/card_amr_report.txt",
-    sample=SAMPLES_LONG.index
+    sample=SAMPLES.index
 )
 
 if EXTERNAL_GENOME_ENABLED:

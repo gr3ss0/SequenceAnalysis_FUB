@@ -11,6 +11,7 @@ analysis_options:
 # Sheet with paths to the samples
 samples_short_read: "config/samples_short.tsv" #path to the sheet with the short read samples, only relevant if integrate_short_reads is set to True
 samples_long_read: "config/samples_long_pacbio.tsv" #or config/samples_long_ONT.tsv, this is required
+samples: "config/samples.tsv" # sample_name | long_fq | short_fq1 | short_fq2 
 
 #screening + decontamination, this is optional, controlled in config analysis options
 kraken2_db: "resources/kraken2_db" #need to put the path to the kraken2 database

@@ -5,15 +5,16 @@ configfile: "config/config.yaml"
 
 INTEGRATE_SHORT_READS = bool(config["analysis_options"]['integrate_short_reads'])
 
-if INTEGRATE_SHORT_READS:
-    SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
-else:
-    SAMPLES_SHORT = pd.DataFrame(columns=["read_type", "fq1", "fq2"]).set_index(
-        pd.Index([], name="sample")
-    )
+# if INTEGRATE_SHORT_READS:
+#     SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
+# else:
+#     SAMPLES_SHORT = pd.DataFrame(columns=["read_type", "fq1", "fq2"]).set_index(
+#         pd.Index([], name="sample")
+#     )
 
-SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
+#SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
 
+SAMPLES = pd.read_csv(config["samples"], index_col="sample", sep='\t')
 
 FINAL_ASSEMBLY = "secondary_assembly.fasta" if INTEGRATE_SHORT_READS else "primary_assembly.fasta"
 
@@ -55,8 +56,8 @@ include: "rules/resistance_prediction.smk"
 
 rule all:
     input:
-        expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index), #prokka output
-        expand(f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}", sample=SAMPLES_LONG.index), #assembly output
+        expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES.index), #prokka output
+        expand(f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}", sample=SAMPLES.index), #assembly output
         "results/phylo_tree/core_genome_tree.png", #panaroo output
         *(
             ["results/annotation_ext/external_genome/external_genome.gff"]
