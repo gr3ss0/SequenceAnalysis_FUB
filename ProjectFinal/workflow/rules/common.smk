@@ -54,3 +54,14 @@ def get_decon_input_short(wildcards): #used as input for the decontamination wor
             "r1": SAMPLES.at[wildcards.sample,'short_fq1'],
             "r2": SAMPLES.at[wildcards.sample,'short_fq2']
         }
+
+def get_final_assembly(wildcards):
+    """
+    Determine the final assembly file path based on whether short reads are integrated and available.
+    """
+    if INTEGRATE_SHORT_READS 
+    and SAMPLES.at[wildcards.sample, "short_fq1"].notnull() 
+    and SAMPLES.at[wildcards.sample, "short_fq2"].notnull():
+        return f"results/assembly/{wildcards.sample}/secondary_assembly.fasta"
+    else:
+        return f"results/assembly/{wildcards.sample}/primary_assembly.fasta"
