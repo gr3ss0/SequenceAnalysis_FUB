@@ -94,7 +94,7 @@ rule decon_index: #building the bowtie2 index for the mapping to the contaminati
         prefix = "results/decon_index/contamination"
     log:
         "logs/decon_index/build.log"
-    threads: 4
+    threads: 30
     conda:
         "../envs/mapping.yaml"
     shell:
@@ -112,7 +112,7 @@ rule decon_map:
         prefix = "results/decon_index/contamination"
     log:
         "logs/decon_map/{sample}.log"
-    threads: 4
+    threads: 8
     conda:
         "../envs/mapping.yaml"
     shell:
