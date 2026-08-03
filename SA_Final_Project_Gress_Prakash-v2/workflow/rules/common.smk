@@ -17,8 +17,8 @@ def get_map_input_short(wildcards):
     else:
 
         return {
-            "r1": SAMPLES_SHORT.at[wildcards.sample,'fq1'],
-            "r2": SAMPLES_SHORT.at[wildcards.sample,'fq2']
+            "r1": SAMPLES.at[wildcards.sample,'short_fq1'],
+            "r2": SAMPLES.at[wildcards.sample,'short_fq2']
         }
 
 def get_map_input_long(wildcards): #this is the input to the assembly
@@ -32,11 +32,11 @@ def get_map_input_long(wildcards): #this is the input to the assembly
 
     else:
 
-        return SAMPLES_LONG.at[wildcards.sample, 'fq']
+        return SAMPLES_LONG.at[wildcards.sample, 'long_fq']
 
 def get_annotation_inputs(wildcards):
     # 1. Get your local samples
-    gff_inputs = expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index)
+    gff_inputs = expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES.index)
     
     # 2. Append the static external path if it exists in config
     if EXTERNAL_GENOME_ENABLED:
@@ -56,9 +56,20 @@ def get_decon_input_short(wildcards): #used as input for the decontamination wor
     else:
 
         return {
-            "r1": SAMPLES_SHORT.at[wildcards.sample,'fq1'],
-            "r2": SAMPLES_SHORT.at[wildcards.sample,'fq2']
+            "r1": SAMPLES.at[wildcards.sample,'short_fq1'],
+            "r2": SAMPLES.at[wildcards.sample,'short_fq2']
         }
+
+def get_final_assembly(wildcards):
+    """
+    Determine the final assembly file path based on whether short reads are integrated and available.
+    """
+    if INTEGRATE_SHORT_READS 
+    and SAMPLES.at[wildcards.sample, "short_fq1"].notnull() 
+    and SAMPLES.at[wildcards.sample, "short_fq2"].notnull():
+        return f"results/assembly/{wildcards.sample}/secondary_assembly.fasta"
+    else:
+        return f"results/assembly/{wildcards.sample}/primary_assembly.fasta"
 
 def get_decon_input_long(wildcards): #this is the input to the decontamination of long reads
 

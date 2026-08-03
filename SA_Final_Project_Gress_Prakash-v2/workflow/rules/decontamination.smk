@@ -1,6 +1,6 @@
 rule kraken2_short:
     input:
-        unpack(get_decon_input_short), #it should not get the decontaminated reads as input
+        unpack(get_decon_input_short),
         db = config["kraken2_db"]
     output:
         report = "results/kraken2/short/{sample}.kraken2.report.txt"
@@ -22,7 +22,7 @@ rule kraken2_short:
 
 rule kraken2_long:
     input:
-        reads = get_decon_input_long, #it should not get the decontaminated reads as input
+        reads = get_decon_input_long, 
         db = config["kraken2_db"]
     output:
         report = "results/kraken2/long/{sample}.kraken2.report.txt"
@@ -45,8 +45,8 @@ rule kraken2_long:
 
 rule multiqc_screen:
     input:
-        expand("results/kraken2/long/{sample}.kraken2.report.txt", sample=SAMPLES_LONG.index) if len(SAMPLES_LONG.index) > 0 else [],
-        expand("results/kraken2/short/{sample}.kraken2.report.txt", sample=SAMPLES_SHORT.index) if len(SAMPLES_SHORT.index) > 0 else [],
+        expand("results/kraken2/long/{sample}.kraken2.report.txt", sample=SAMPLES.index) if len(SAMPLES.index) > 0 else [],
+        expand("results/kraken2/short/{sample}.kraken2.report.txt", sample=SAMPLES.index) if len(SAMPLES.index) > 0 else [],
     output:
         report_file = "results/qc/multiqc_screen.html",
         out_dir = directory("results/qc/multiqc_screen_data")
@@ -68,22 +68,6 @@ rule screen:
     input:
         "results/qc/multiqc_screen.html"
 
-
-
-#rule contaminants_index:
-#     input:
-#        target=config["contamination_fasta"]
-#     output:
-#         index="results/index/reference.mmi"
-#     log:
-#         "logs/minimap2_index/ref.log"
-#     threads: 4
-#     conda:
-#         "../envs/mapping.yaml"
-#     shell:
-#         "minimap2 -t {threads} -d {output.index} {input.target} > {log} 2>&1"
-
-
 rule decon_index: #building the bowtie2 index for the mapping to the contamination sequences
     input:
         fasta = config['contamination_fasta']
@@ -97,7 +81,7 @@ rule decon_index: #building the bowtie2 index for the mapping to the contaminati
         prefix = "results/decon_index/contamination"
     log:
         "logs/decon_index/build.log"
-    threads: 4
+    threads: 30
     conda:
         "../envs/mapping.yaml"
     shell:
@@ -107,14 +91,15 @@ rule decon_index: #building the bowtie2 index for the mapping to the contaminati
 rule decon_map:
     input:
         unpack(get_decon_input_short), 
-        index = rules.decon_index.output
+        # index is required to exist, not directly used in command.
+        index = rules.decon_index.output if config["contamination_index"] == [] else config["contamination_index"]
     output:
         bam = "results/decontamination/{sample}_contamination_mapped.bam"
     params:
         prefix = "results/decon_index/contamination"
     log:
         "logs/decon_map/{sample}.log"
-    threads: 4
+    threads: 8
     conda:
         "../envs/mapping.yaml"
     shell:
@@ -235,7 +220,6 @@ rule decon_filter_long:
             2> {log}
         """
         
-
 #     rule decon_stats: 
 #         #this is included in rule multiqc_all when decontamination is enabled (can be seen in qc.smk)
 #         input:
@@ -249,5 +233,3 @@ rule decon_filter_long:
 #             "../envs/mapping.yaml"
 #         shell:
 #             "samtools flagstat {input.bam} > {output.flagstat} 2>{log}"
-
-
