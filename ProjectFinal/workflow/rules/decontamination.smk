@@ -104,7 +104,8 @@ rule decon_index: #building the bowtie2 index for the mapping to the contaminati
 rule decon_map:
     input:
         unpack(get_decon_input_short), 
-        index = rules.decon_index.output
+        # index is required to exist, not directly used in command.
+        index = rules.decon_index.output if config["contamination_index"] == [] else config["contamination_index"]
     output:
         bam = "results/decontamination/{sample}_contamination_mapped.bam"
     params:
