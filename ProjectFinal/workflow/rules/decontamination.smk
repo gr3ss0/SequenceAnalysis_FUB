@@ -1,6 +1,6 @@
 rule kraken2_short:
     input:
-        unpack(get_decon_input_short), #it should not get the decontaminated reads as input
+        unpack(get_decon_input_short),
         db = config["kraken2_db"]
     output:
         report = "results/kraken2/short/{sample}.kraken2.report.txt"
@@ -22,7 +22,7 @@ rule kraken2_short:
 
 rule kraken2_long:
     input:
-        reads = get_decon_input_long, #it should not get the decontaminated reads as input
+        reads = get_decon_input_long, 
         db = config["kraken2_db"]
     output:
         report = "results/kraken2/long/{sample}.kraken2.report.txt"
@@ -67,22 +67,6 @@ rule screen:
     #   snakemake --use-conda --cores 10 screen can be used to stop here and inspect the multiqc report
     input:
         "results/qc/multiqc_screen.html"
-
-
-
-#rule contaminants_index:
-#     input:
-#        target=config["contamination_fasta"]
-#     output:
-#         index="results/index/reference.mmi"
-#     log:
-#         "logs/minimap2_index/ref.log"
-#     threads: 4
-#     conda:
-#         "../envs/mapping.yaml"
-#     shell:
-#         "minimap2 -t {threads} -d {output.index} {input.target} > {log} 2>&1"
-
 
 rule decon_index: #building the bowtie2 index for the mapping to the contamination sequences
     input:
@@ -236,7 +220,6 @@ rule decon_filter_long:
             2> {log}
         """
         
-
 #     rule decon_stats: 
 #         #this is included in rule multiqc_all when decontamination is enabled (can be seen in qc.smk)
 #         input:
@@ -250,5 +233,3 @@ rule decon_filter_long:
 #             "../envs/mapping.yaml"
 #         shell:
 #             "samtools flagstat {input.bam} > {output.flagstat} 2>{log}"
-
-

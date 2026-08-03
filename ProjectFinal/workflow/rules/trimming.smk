@@ -24,12 +24,6 @@ rule fastp_trim_short:
     wrapper:
         "v7.1.0/bio/fastp"
 
-#rule trim_all:
-    #input:
-        #expand("results/trimmed/short/{sample}.1.fastq.gz", sample=SAMPLES_SHORT.index),
-        #expand("results/trimmed/short/{sample}.2.fastq.gz", sample=SAMPLES_SHORT.index),
-        #expand("results/trimmed/long/{sample}.fastq.gz", sample=SAMPLES_LONG.index) if len(config["samples_long_read"])>0 else [],
-
 
 rule fastplong_trim_long:
     input:
@@ -60,3 +54,9 @@ rule fastplong_trim_long:
             -w {threads} \
             > {log} 2>&1
         """
+
+#rule trim_all:
+    #input:
+        #expand("results/trimmed/short/{sample}.1.fastq.gz", sample=SAMPLES.index),
+        #expand("results/trimmed/short/{sample}.2.fastq.gz", sample=SAMPLES.index),
+        #expand("results/trimmed/long/{sample}.fastq.gz", sample=SAMPLES.index) if len(config["samples_long_read"])>0 else [],

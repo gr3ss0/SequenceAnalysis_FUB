@@ -30,7 +30,7 @@ rule diamond_find_align_orthologs:
     log:
         "logs/prot_phylogeny/blast_protein.log"
     conda:
-        "../envs/diamond.yaml" # Environment containing blast/python
+        "../envs/diamond.yaml" 
     threads: 32
     params:
         format = "--outfmt 6 qseqid sseqid pident"

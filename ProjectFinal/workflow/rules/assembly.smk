@@ -3,7 +3,6 @@ rule long_based_assembly:
         get_map_input_long
     output:
         assembly = "results/assembly/{sample}/primary_assembly.fasta",
-        #out_dir = directory("results/assembly/{sample}"),
     threads: 16
     log:
         "logs/flye/{sample}.log"
@@ -103,21 +102,15 @@ rule quast:
 rule busco:
     input:
         contig = f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}",
-
     output:
         out_dir=directory("results/assembly/{sample}/busco")
-
     log:
         "logs/busco/{sample}.log"
-
     threads: 16
-
     params:
         lineage=config.get("busco_lineage", "enterobacterales_odb12") #this will be downloaded by the busco command
-
     conda:
         "../envs/busco.yaml"
-
     shell:
         """
         busco \
@@ -140,17 +133,13 @@ rule multiqc_quast_busco:
             "results/assembly/{sample}/busco",
             sample=SAMPLES.index
         )
-
     output:
         report_file="results/assembly/multiqc_quast_busco.html",
         out_dir=directory("results/assembly/multiqc_quast_busco_data")
-
     log:
         "logs/multiqc/quast_busco.log"
-
     conda:
         "../envs/qc.yaml"
-
     shell:
         """
         multiqc {input} \

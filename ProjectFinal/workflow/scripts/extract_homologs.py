@@ -43,23 +43,3 @@ for query, output_file in output_files.items():
         if group is not None:                  
             for protein_id in group['sseqid']:
                 SeqIO.write(prot_dict[protein_id], f, "fasta") #write the orthologs
-
-
-
-
-
-
-
-
-
-#filter_homologs = alignment_df[alignment_df['pident'] >= threshold].copy()
-
-
-
-#group_df = filter_homologs.groupby('qseqid')
-
-#for query, group in group_df:
-    #output_file = output_files[str(query)]
-    #with open(output_file, "w") as f:
-        #for homolog in group['sseqid']:
-            #SeqIO.write(prot_dict[homolog], f, "fasta")

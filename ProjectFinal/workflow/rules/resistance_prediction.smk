@@ -6,8 +6,6 @@ rule set_up_card_download:
     output:
         json = CARD_DIR + "/card.json",
         pmid = CARD_DIR + "/PMID.tsv"
-
-        #db_instance = directory(CARD_DIR),
     log:
         "logs/card/download.log"
     params:
@@ -56,7 +54,7 @@ rule card_amr_detection:
         "../envs/resistance_prediction.yaml"
     params:
         prefix = "results/card_amr_report/{sample}/card_amr_report",
-        alignment_tool = "blast" # Or "diamond" for even faster protein alignments
+        alignment_tool = "blast" 
     shell:
         """
         rgi main \
@@ -84,7 +82,7 @@ rule card_amr_detection_external:
         "../envs/resistance_prediction.yaml"
     params:
         prefix = "results/card_amr_report/external/card_amr_report",
-        alignment_tool = "blast" # Or "diamond" for even faster protein alignments
+        alignment_tool = "blast"
     shell:
         """
         rgi main \
@@ -103,6 +101,6 @@ rule merge_amr:
     output:
         xlsx = "results/card_amr_report/amr_merged.xlsx"
     conda:
-        "../envs/openpyxl.yaml" # Ensure pandas and openpyxl are in this env
+        "../envs/openpyxl.yaml"
     script:
         "../scripts/merge_amr_excel.py"
