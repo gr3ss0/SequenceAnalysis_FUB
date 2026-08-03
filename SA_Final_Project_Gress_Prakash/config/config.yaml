@@ -1,0 +1,50 @@
+analysis_options:
+ skip_trimming: False
+ skip_qualimap: False
+ skip_kraken_screening: False
+ search_for_antibiotic_resistence: True
+ skip_decontamination: False #only relevant if you have a contamination fasta file
+ integrate_short_reads: True #to integrate short reads with long reads for the assembly
+ 
+
+
+# Sheet with paths to the samples
+samples_short_read: "config/samples_short.tsv" #path to the sheet with the short read samples, only relevant if integrate_short_reads is set to True
+samples_long_read: "config/samples_long_pacbio.tsv" #or config/samples_long_ONT.tsv, this is required
+
+#screening + decontamination, this is optional, controlled in config analysis options
+kraken2_db: "resources/kraken2_db" #need to put the path to the kraken2 database
+contamination_fasta: "resources/contamination/contamination.fasta" #for the decontamination, make this [] and set skip_decontamination to True if you do not want to run the decontamination step
+
+
+#optional and controlled from here itself
+external_genome: "resources/external_genome/external_genome.fasta" #this is the outgroup assembled genome, make it [] if you do not want to consider any outgroup for the tree and core genome
+
+
+
+#DOWNSTREAM ANALYSIS
+
+#for the antibiotic resistance, this is optional, controlled in config analysis options
+card_db: "resources/card_db" #location where it is downloaded
+card_version: "4.0.1"  # Pin the exact version for scientific reproducibility
+
+#for the protein phylogeny, this is optional, controlled from here itself
+diamond_db: "resources/diamond_db/protein_pool" 
+protein_sequences: "resources/query_proteins/query_proteins.fasta" #this is optional, make [] if you do not want to run the protein phylogeny analysis
+
+
+flye_technique: "--pacbio-raw" #"--nano-raw" or "--nano-hq" or "--pacbio-raw" etc depending on the long read sequencing technique used
+busco_lineage: "enterobacterales_odb12" #mention the busco lineage you would like to use for the busco completeness analysis, it will be downloaded during Busco run
+
+
+
+
+#-----------------------------------------------------------
+#FOR MINIMAL WORKFLOW DO THE FOLLOWING:
+#analysis_options:
+# skip_trimming: True
+# skip_qualimap: True
+# skip_kraken_screening: True
+# search_for_antibiotic_resistence: False
+# skip_decontamination: True #only relevant if you have a contamination fasta file
+# integrate_short_reads: False

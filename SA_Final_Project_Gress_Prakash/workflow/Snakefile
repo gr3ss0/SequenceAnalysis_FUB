@@ -1,0 +1,124 @@
+import os
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+INTEGRATE_SHORT_READS = bool(config["analysis_options"]['integrate_short_reads'])
+
+if INTEGRATE_SHORT_READS:
+    SAMPLES_SHORT = pd.read_csv(config["samples_short_read"], index_col="sample", sep='\t')
+else:
+    SAMPLES_SHORT = pd.DataFrame(columns=["read_type", "fq1", "fq2"]).set_index(
+        pd.Index([], name="sample")
+    )
+
+SAMPLES_LONG =  pd.read_csv(config["samples_long_read"], index_col="sample", sep='\t')
+
+
+FINAL_ASSEMBLY = "secondary_assembly.fasta" if INTEGRATE_SHORT_READS else "primary_assembly.fasta"
+
+
+TRIMMING_ENABLED = not config["analysis_options"].get("skip_trimming", True)
+QUALIMAP_ENABLED = not config["analysis_options"].get("skip_qualimap", True)
+
+EXTERNAL_GENOME_ENABLED = bool(config["external_genome"])
+RESISTANCE_ENABLED = bool(config["analysis_options"]["search_for_antibiotic_resistence"])
+PROTEIN_PHYLOGENY_ENABLED = bool(config["protein_sequences"])
+DECONTAMINATION_ENABLED = (
+    bool(config["contamination_fasta"])
+    and not config["analysis_options"].get("skip_decontamination", False)
+) #only enabled if both a contamination fasta is provided and the skip_decontamination option is set to False
+
+QUERY_FILE = config["protein_sequences"] if PROTEIN_PHYLOGENY_ENABLED else ""
+
+if PROTEIN_PHYLOGENY_ENABLED:
+	QUERY_PROTEINS = [
+		line[1:].strip().split()[0]
+		for line in open(QUERY_FILE)
+		if line.startswith(">")
+	]
+else:
+	QUERY_PROTEINS = []
+
+
+
+include: "rules/common.smk"
+include: "rules/trimming.smk"
+include: "rules/qc.smk"
+include: "rules/decontamination.smk"
+include: "rules/samtools.smk"
+include: "rules/assembly.smk"
+include: "rules/annotation.smk"
+include: "rules/protein_phylogeny.smk"
+include: "rules/resistance_prediction.smk"
+
+
+rule all:
+    input:
+        expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index), #prokka output
+        expand(f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}", sample=SAMPLES_LONG.index), #assembly output
+        "results/phylo_tree/core_genome_tree.png", #panaroo output
+        *(
+            ["results/annotation_ext/external_genome/external_genome.gff"]
+            if EXTERNAL_GENOME_ENABLED
+            else []
+        ), #annotated external genome
+        *(
+            ["results/card_amr_report/amr_merged.xlsx"]
+            if RESISTANCE_ENABLED
+            else []
+        ), #excel file with merged AMR results
+        *(
+            expand(
+                "results/protein_queries/trees/{query}/{query}.png", #new is for check
+                query=QUERY_PROTEINS
+            )
+            if PROTEIN_PHYLOGENY_ENABLED
+            else []
+        ), #tree per protein query
+        "results/qc/multiqc_all.html",
+        *(
+            ["results/qc/multiqc_raw.html"]
+            if TRIMMING_ENABLED
+            else []
+        ), #for a comparison of the quality of the raw and trimmed reads
+        "results/assembly/multiqc_quast_busco.html", #always produced
+        *(
+            ["results/qc/multiqc_screen.html"]
+            if not config["analysis_options"]["skip_kraken_screening"]
+            else []
+        ) #contaminants screening
+
+#rule all:
+	#input:
+		# de novo assembled and annotated genome for each sample. At least prediction of protein coding genes
+		#expand("results/assembly/{sample}/secondary_assembly.fasta", sample=SAMPLES_SHORT.index),
+		##expand("results/annotation/{sample}/{sample}.gff", sample=SAMPLES_LONG.index),
+		# established metrics
+		#expand("results/assembly/{sample}/contiguity/", sample=SAMPLES_SHORT.index),
+		#expand("results/denovo/{sample}/completness", sample=SAMPLES_SHORT.index),
+		# core genome
+		#"results/annotation/core/core_gene_alignment.aln",
+		##"results/phylo_tree/core_genome_tree.png",
+
+		# antibiotic resistance
+		# expand("results/card/{sample}", sample=SAMPLES_SHORT.index),
+		# "results/card/overview",
+
+		# QC
+
+		# Protein sequences
+		# expand("results/proteins/{protein}/orthologs", protein=PROTEINS),
+		# expand("results/proteins/{protein}/msa", protein=PROTEINS),
+		# expand("results/proteins/{protein}/phylo-tree", protein=PROTEINS),
+
+		# AMR
+		##"results/card_amr_report/amr_merged.xlsx",
+
+		# targeted protein phylogenies
+        #expand(
+            #"results/protein_queries/trees/{query}/{query}.png",
+            #query=QUERY_PROTEINS
+        #)
+
+		
