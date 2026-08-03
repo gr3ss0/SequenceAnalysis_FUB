@@ -45,8 +45,8 @@ rule kraken2_long:
 
 rule multiqc_screen:
     input:
-        expand("results/kraken2/long/{sample}.kraken2.report.txt", sample=SAMPLES_LONG.index) if len(SAMPLES_LONG.index) > 0 else [],
-        expand("results/kraken2/short/{sample}.kraken2.report.txt", sample=SAMPLES_SHORT.index) if len(SAMPLES_SHORT.index) > 0 else [],
+        expand("results/kraken2/long/{sample}.kraken2.report.txt", sample=SAMPLES.index) if len(SAMPLES.index) > 0 else [],
+        expand("results/kraken2/short/{sample}.kraken2.report.txt", sample=SAMPLES.index) if len(SAMPLES.index) > 0 else [],
     output:
         report_file = "results/qc/multiqc_screen.html",
         out_dir = directory("results/qc/multiqc_screen_data")
@@ -97,7 +97,7 @@ rule decon_index: #building the bowtie2 index for the mapping to the contaminati
         prefix = "results/decon_index/contamination"
     log:
         "logs/decon_index/build.log"
-    threads: 4
+    threads: 30
     conda:
         "../envs/mapping.yaml"
     shell:
@@ -107,14 +107,15 @@ rule decon_index: #building the bowtie2 index for the mapping to the contaminati
 rule decon_map:
     input:
         unpack(get_decon_input_short), 
-        index = rules.decon_index.output
+        # index is required to exist, not directly used in command.
+        index = rules.decon_index.output if config["contamination_index"] == [] else config["contamination_index"]
     output:
         bam = "results/decontamination/{sample}_contamination_mapped.bam"
     params:
         prefix = "results/decon_index/contamination"
     log:
         "logs/decon_map/{sample}.log"
-    threads: 4
+    threads: 8
     conda:
         "../envs/mapping.yaml"
     shell:

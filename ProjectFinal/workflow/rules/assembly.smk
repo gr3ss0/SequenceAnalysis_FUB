@@ -134,11 +134,11 @@ rule multiqc_quast_busco:
     input:
         expand(
             "results/assembly/{sample}/quast",
-            sample=SAMPLES_LONG.index
+            sample=SAMPLES.index
         ),
         expand(
             "results/assembly/{sample}/busco",
-            sample=SAMPLES_LONG.index
+            sample=SAMPLES.index
         )
 
     output:

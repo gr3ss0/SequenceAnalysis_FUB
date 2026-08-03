@@ -1,6 +1,6 @@
 rule prokka_prediction:
     input:
-        assembly = f"results/assembly/{{sample}}/{FINAL_ASSEMBLY}",
+        assembly = get_final_assembly,
     output:
         # Prokka creates a GFF with FASTA appended automatically
         out_dir = directory("results/annotation/{sample}"),
@@ -45,6 +45,15 @@ rule prokka_predict_external:
                 {input.assembly} > {log} 2>&1
         """
 
+PROKKA_PROTEINS = expand(
+    "results/annotation/{sample}/{sample}.faa",
+    sample=SAMPLES_LONG.index
+)
+
+if EXTERNAL_GENOME_ENABLED:
+    PROKKA_PROTEINS.append(
+        "results/annotation_ext/external_genome/external_genome.faa"
+    )
 
 rule combine_prokka_proteins:
     input:

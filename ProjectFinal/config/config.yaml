@@ -11,12 +11,13 @@ analysis_options:
 # Sheet with paths to the samples
 samples_short_read: "config/samples_short.tsv" #path to the sheet with the short read samples, only relevant if integrate_short_reads is set to True
 samples_long_read: "config/samples_long_pacbio.tsv" #or config/samples_long_ONT.tsv, this is required
+samples: "config/samples.tsv" # sample_name | long_fq | short_fq1 | short_fq2 
 
 
 #screening + decontamination, this is optional, controlled in config analysis options
 kraken2_db: "resources/kraken2_db" #need to put the path to the kraken2 database
 contamination_fasta: "resources/contamination/contamination.fasta" #for the decontamination, make this [] and set skip_decontamination to True if you do not want to run the decontamination step
-
+contamination_index: "resources/decon_index/" # precomputed index to speed up the processing, make this [] if you do not want to use a precomputed index and want to build the index from the contamination fasta file
 
 #optional and controlled from here itself
 external_genome: "resources/external_genome/external_genome.fasta" #this is the outgroup assembled genome, make it [] if you do not want to consider any outgroup for the tree and core genome

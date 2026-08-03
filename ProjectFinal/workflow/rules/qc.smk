@@ -1,6 +1,6 @@
 rule raw_qc:
     input:
-        lambda wildcards: SAMPLES_SHORT.at[wildcards.sample, f"fq{wildcards.read}"]
+        lambda wildcards: SAMPLES.at[wildcards.sample, f"short_fq{wildcards.read}"]
     output:
         html="results/qc/fastqc/raw_short/{sample}_{read}.html",
         zip="results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip"
@@ -17,7 +17,7 @@ rule raw_qc:
 
 rule raw_qc_long:
     input:
-        lambda wildcards: SAMPLES_LONG.at[wildcards.sample, "fq"]
+        lambda wildcards: SAMPLES.at[wildcards.sample, "long_fq"]
     output:
         html="results/qc/fastqc/raw_long/{sample}.html",
         zip="results/qc/fastqc/raw_long/{sample}_fastqc.zip"
@@ -116,22 +116,22 @@ rule qualimap_polish_filter: #this is after the polypolish filter
 rule multiqc_all:
     input:
         *(
-            expand("results/qc/fastqc/processed_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=["1", "2"])
+            expand("results/qc/fastqc/processed_short/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=["1", "2"])
             if TRIMMING_ENABLED
-            else expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=["1", "2"])
+            else expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=["1", "2"])
         ),
         *(
-            expand("results/qc/fastqc/processed_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index)
+            expand("results/qc/fastqc/processed_long/{sample}_fastqc.zip", sample=SAMPLES.index)
             if TRIMMING_ENABLED
-            else expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index)
+            else expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES.index)
         ),
         *(
-            expand("results/qc/qualimap/polish/{sample}", sample=SAMPLES_SHORT.index)
+            expand("results/qc/qualimap/polish/{sample}", sample=SAMPLES.index)
             if (QUALIMAP_ENABLED and INTEGRATE_SHORT_READS)
             else []
         ),
         *(
-            expand("results/qc/qualimap/filter/{sample}", sample=SAMPLES_SHORT.index)
+            expand("results/qc/qualimap/filter/{sample}", sample=SAMPLES.index)
             if (QUALIMAP_ENABLED and INTEGRATE_SHORT_READS)
             else []
         )
@@ -164,8 +164,8 @@ rule multiqc_all:
 
 rule run_raw_qc:
     input:
-        expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES_SHORT.index, read=['1', '2']),
-        expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES_LONG.index) if len(SAMPLES_LONG.index)>0 else []
+        expand("results/qc/fastqc/raw_short/{sample}_{read}_fastqc.zip", sample=SAMPLES.index, read=['1', '2']),
+        expand("results/qc/fastqc/raw_long/{sample}_fastqc.zip", sample=SAMPLES.index) if len(SAMPLES.index)>0 else []
     output:
         # Definierte Pfade relativ zum Projektverzeichnis
         report_file="results/qc/multiqc_raw.html",
