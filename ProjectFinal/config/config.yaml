@@ -2,7 +2,7 @@ analysis_options:
  skip_trimming: False
  skip_qualimap: False
  skip_kraken_screening: False
- search_for_antibiotic_resistence: True
+ search_for_antibiotic_resistance: True
  skip_decontamination: False #only relevant if you have a contamination fasta file
  integrate_short_reads: True #to integrate short reads with long reads for the assembly
  
@@ -45,6 +45,6 @@ busco_lineage: "enterobacterales_odb12" #mention the busco lineage you would lik
 # skip_trimming: True
 # skip_qualimap: True
 # skip_kraken_screening: True
-# search_for_antibiotic_resistence: False
+# search_for_antibiotic_resistance: False
 # skip_decontamination: True #only relevant if you have a contamination fasta file
 # integrate_short_reads: False
