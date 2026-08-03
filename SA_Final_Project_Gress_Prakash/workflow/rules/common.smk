@@ -21,13 +21,18 @@ def get_map_input_short(wildcards):
             "r2": SAMPLES_SHORT.at[wildcards.sample,'fq2']
         }
 
-def get_map_input_long(wildcards):
-    if config["analysis_options"].get("skip_trimming", True):
-        return SAMPLES_LONG.at[wildcards.sample, 'fq']
-        
-    else:
-        # Updated to point to fastp's compressed outputs
+def get_map_input_long(wildcards): #this is the input to the assembly
+    if DECONTAMINATION_ENABLED:
+
+        return f"results/decontaminated/long/{wildcards.sample}.fastq"
+
+    elif not config["analysis_options"].get("skip_trimming", True):
+
         return f"results/trimmed/long/{wildcards.sample}.fastq.gz"
+
+    else:
+
+        return SAMPLES_LONG.at[wildcards.sample, 'fq']
 
 def get_annotation_inputs(wildcards):
     # 1. Get your local samples
@@ -54,3 +59,26 @@ def get_decon_input_short(wildcards): #used as input for the decontamination wor
             "r1": SAMPLES_SHORT.at[wildcards.sample,'fq1'],
             "r2": SAMPLES_SHORT.at[wildcards.sample,'fq2']
         }
+
+def get_decon_input_long(wildcards): #this is the input to the decontamination of long reads
+
+    if not config["analysis_options"].get("skip_trimming", True):
+
+        return f"results/trimmed/long/{wildcards.sample}.fastq.gz"
+
+    else:
+
+        return SAMPLES_LONG.at[wildcards.sample, 'fq']
+
+
+def get_prokka_proteins(wildcards): #used for the combine_prokka_proteins rule
+    proteins = expand("results/annotation/{sample}/{sample}.faa", sample=SAMPLES_LONG.index)
+    if EXTERNAL_GENOME_ENABLED:
+        proteins.append("results/annotation_ext/external_genome/external_genome.faa")
+    return proteins
+
+def get_card_amr_reports(wildcards): #used for the merge_amr_reports rule
+    reports = expand("results/card_amr_report/{sample}/card_amr_report.txt", sample=SAMPLES_LONG.index)
+    if EXTERNAL_GENOME_ENABLED:
+        reports.append("results/card_amr_report/external/card_amr_report.txt")
+    return reports

@@ -22,6 +22,8 @@ rule merge_map:
     threads: 4
     conda:
         "../envs/assembly.yaml"
+    log:
+        "logs/polish/merge/{sample}.log"
     shell:
         """
         # 1. Sort both SAMs by read name (-n) and convert to BAM

@@ -46,6 +46,8 @@ rule extract_homologs:
         fasta_files = expand("results/protein_queries/fasta/{query}.fasta", query=QUERY_PROTEINS),
     conda:
         "../envs/diamond.yaml"
+    log:
+        "logs/prot_phylogeny/extract_homologs.log"
     params:
         threshold = 50
     script:
@@ -94,6 +96,8 @@ rule visualize_tree:
         "results/protein_queries/trees/{query}/{query}.png"
     conda:
         "../envs/phylo.yaml"
+    log:
+        "logs/prot_phylogeny/visualize_tree_{query}.log"
     script:
         "../scripts/visualize_tree.py"
 
